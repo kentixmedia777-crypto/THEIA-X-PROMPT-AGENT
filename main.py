@@ -292,7 +292,7 @@ if password_input == ACCESS_PASSWORD:
             with st.spinner("Theia is analyzing narrative variables using Gemini 1.5 Pro..."):
                 try:
                     # Using the advanced pro model as requested
-                    model = genai.GenerativeModel("gemini-1.5-pro-latest")
+                    model = genai.GenerativeModel("gemini-1.5-flash")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
                     
                     # Clean the JSON output (in case Gemini adds markdown formatting despite instructions)
