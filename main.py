@@ -13,7 +13,13 @@ from io import BytesIO
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
 HISTORY_FILE = "theia_genetic_history.json"
 
-# --- THEIA PYTHON ENGINE (ANALOG FILM UPGRADE) ---
+# --- STREAMLIT CALLBACK FUNCTION (FIXES THE CRASH) ---
+def reset_edits(subject_name):
+    st.session_state[f"b_{subject_name}"] = 1.0
+    st.session_state[f"c_{subject_name}"] = 1.0
+    st.session_state[f"s_{subject_name}"] = 1.0
+
+# --- THEIA PYTHON ENGINE ---
 class TheiaPromptGenerator:
     def __init__(self):
         self.history = self._load_history()
@@ -226,7 +232,7 @@ SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.3 Enterprise Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.4 Enterprise Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -254,7 +260,7 @@ if password_input == ACCESS_PASSWORD:
                 try:
                     model = genai.GenerativeModel("gemini-2.5-pro")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
-                    # Safe JSON extraction (bypasses UI copy-paste bugs)
+                    # Safe JSON extraction
                     raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
                     character_data = json.loads(raw_json)
                     
@@ -299,13 +305,11 @@ if password_input == ACCESS_PASSWORD:
             st.markdown(f"### 📸 Subject: {name}")
             st.caption(f"**Locked Genetic Hash:** `{subject['hash']}`")
             
-            # 1. Prompt on Top
             st.code(subject["prompt"], language="markdown")
             
-            # 2. The Photo Editor Sliders
             st.markdown("##### 🎛️ Post-Processing Adjustments")
             
-            # Initialize slider defaults in session state if they don't exist
+            # Initialize slider defaults
             if f"b_{name}" not in st.session_state: st.session_state[f"b_{name}"] = 1.0
             if f"c_{name}" not in st.session_state: st.session_state[f"c_{name}"] = 1.0
             if f"s_{name}" not in st.session_state: st.session_state[f"s_{name}"] = 1.0
@@ -318,12 +322,8 @@ if password_input == ACCESS_PASSWORD:
             with col3:
                 sharpness = st.slider("Sharpness", 0.0, 2.5, key=f"s_{name}")
             
-            # UNDO BUTTON
-            if st.button("↩️ Reset Edits (Undo)", key=f"reset_{name}"):
-                st.session_state[f"b_{name}"] = 1.0
-                st.session_state[f"c_{name}"] = 1.0
-                st.session_state[f"s_{name}"] = 1.0
-                st.rerun()
+            # FIX: The secure callback button
+            st.button("↩️ Reset Edits (Undo)", key=f"reset_{name}", on_click=reset_edits, args=(name,))
             
             # Apply PIL Edits
             base_img = Image.open(BytesIO(subject["image_bytes"]))
@@ -331,10 +331,8 @@ if password_input == ACCESS_PASSWORD:
             base_img = ImageEnhance.Contrast(base_img).enhance(contrast)
             final_img = ImageEnhance.Sharpness(base_img).enhance(sharpness)
             
-            # 3. Display the Image
             st.image(final_img, use_container_width=True)
             
-            # 4. The Styled Download Button
             buf = BytesIO()
             final_img.save(buf, format="JPEG", quality=95)
             st.download_button(
