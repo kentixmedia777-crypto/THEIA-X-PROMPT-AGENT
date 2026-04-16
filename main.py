@@ -54,7 +54,6 @@ class TheiaPromptGenerator:
             "overexposed direct sunlight creating blown-out highlights"
         ]
 
-        # Forced Analog/Disposable Cameras to kill the "Plastic" look
         self.camera_hardware = [
             "shot on a cheap Kodak disposable camera, heavy chemical film grain, light leaks",
             "taken on 35mm amateur analog film, gritty texture, slight chromatic aberration",
@@ -118,7 +117,6 @@ class TheiaPromptGenerator:
 
         wealth_modifier = "wearing worn, slightly faded everyday clothing." if socioeconomic_status.lower() in ["poor", "struggling"] else "wearing standard everyday casual clothing."
 
-        # The Analog Realism Prompt
         prompt = (
             f"A completely mundane, highly amateur candid snapshot of {character_name}. "
             f"{camera}. They have {bone}. {skin}. "
@@ -132,7 +130,6 @@ class TheiaPromptGenerator:
 # --- UI SETUP ---
 st.set_page_config(page_title="THEIA PRO", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
 
-# Combined CSS to style BOTH the initialize button and the download button
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
@@ -187,8 +184,6 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(88, 101, 242, 0.3); 
         background: rgba(43, 45, 49, 0.9) !important;
     }
-    
-    /* Applies gradient glassmorphism to ALL buttons (Initialize, Undo, and Download) */
     .stButton>button, .stDownloadButton>button { 
         background: linear-gradient(135deg, #5865F2 0%, #a23db8 100%) !important; 
         color: white !important; 
@@ -242,7 +237,6 @@ if password_input == ACCESS_PASSWORD:
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
         st.sidebar.info("🎨 Engine: FLUX.1 Dev (Analog Config)")
-        # RESTORED AUTH TAG
         st.sidebar.info("🏢 Auth: Lucalles Productions")
         st.sidebar.info("🛠️ Post-Processing: Active")
     
@@ -260,6 +254,7 @@ if password_input == ACCESS_PASSWORD:
                 try:
                     model = genai.GenerativeModel("gemini-2.5-pro")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
+                    # Safe JSON extraction (bypasses UI copy-paste bugs)
                     raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
                     character_data = json.loads(raw_json)
                     
