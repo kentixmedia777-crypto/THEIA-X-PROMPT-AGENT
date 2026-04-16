@@ -16,95 +16,95 @@ class TheiaPromptGenerator:
         self.history = self._load_history()
 
         self.bone_structures = [
-            "prominent supraorbital ridge with wide zygomatic bones",
-            "flat midface with a weak receding chin and soft jawline",
-            "asymmetrical jaw structure with a slightly deviated septum",
+            "a prominent supraorbital ridge with wide zygomatic bones",
+            "a flat midface with a weak receding chin and soft jawline",
+            "an asymmetrical jaw structure with a slightly deviated septum",
             "high, sharp cheekbones with deep-set, hooded eyes",
-            "round facial structure with soft cheeks and a broad alar base",
-            "narrow, angular face with a pronounced dorsal hump on the nose",
-            "strong, square mandibular structure with wide-set eyes",
-            "soft, oval face with epicanthic folds and a delicate chin",
-            "symmetrical facial structure, strong defined jawline, high cheekbones",
-            "delicate and balanced features, straight nasal bridge, almond-shaped eyes",
-            "handsome, conventionally attractive proportions, strong chin, relaxed brow",
-            "beautiful natural bone structure, soft jawline, large expressive eyes"
+            "a round facial structure with soft cheeks and a broad alar base",
+            "a narrow, angular face with a pronounced dorsal hump on the nose",
+            "a strong, square mandibular structure with wide-set eyes",
+            "a soft, oval face with epicanthic folds and a delicate chin",
+            "a symmetrical facial structure with a strong defined jawline",
+            "delicate and balanced features with a straight nasal bridge",
+            "handsome, conventionally attractive proportions with a strong chin",
+            "a beautiful natural bone structure with a soft jawline"
         ]
 
         self.skin_textures = [
-            "visible pores, natural sebum catching the light, faint acne scarring",
+            "visible pores, natural sebum catching the light, and faint acne scarring",
             "sun-damaged skin with asymmetrical freckling and fine lines around the eyes",
-            "unretouched skin texture, slight rosacea on the cheeks, razor burn",
-            "realistic peach fuzz, uneven pigmentation, natural skin tone",
-            "weathered skin, deep laugh lines, slight under-eye bags",
-            "matte but natural skin, slight imperfection on the forehead, visible capillaries",
-            "clear complexion, very faint natural freckles, soft natural lighting reflection",
-            "well-maintained skin, slight natural shine on the nose, realistic pores but no major blemishes",
-            "naturally healthy glow, faint laugh lines, clean unedited look",
-            "smooth skin with a subtle, everyday smartphone beauty filter applied, slight digital smoothing"
+            "unretouched skin texture, slight rosacea on the cheeks, and razor burn",
+            "realistic peach fuzz, uneven pigmentation, and a natural skin tone",
+            "weathered skin, deep laugh lines, and slight under-eye bags",
+            "matte but natural skin, a slight imperfection on the forehead, and visible capillaries",
+            "a clear complexion with very faint natural freckles",
+            "well-maintained skin with a slight natural shine on the nose and realistic pores",
+            "a naturally healthy glow with faint laugh lines",
+            "smooth skin with a subtle, everyday smartphone beauty filter applied"
         ]
 
         self.environments = [
-            "Outdoor: overgrown backyard",
-            "Outdoor: windy public park path",
-            "Outdoor: busy city crosswalk with concrete textures",
-            "Outdoor: edge of a lake, muddy banks, bright natural light",
-            "Indoor: fluorescent-lit grocery store aisle",
-            "Indoor: cramped, messy bedroom",
-            "Indoor: warm, softly lit local pub",
-            "Indoor: harsh mirror lighting in a public restroom or gym locker room",
-            "Indoor: inside a parked car, driver seat"
+            "an overgrown backyard",
+            "a windy public park path",
+            "a busy city crosswalk with concrete textures",
+            "the edge of a lake with muddy banks",
+            "a fluorescent-lit grocery store aisle",
+            "a cramped, messy bedroom",
+            "a warm, softly lit local pub",
+            "a public restroom or gym locker room with harsh mirror lighting",
+            "the driver seat of a parked car"
         ]
 
         self.lighting_conditions = [
             "harsh direct camera flash creating hard drop shadows",
-            "flat, overcast daylight, very even and shadowless",
-            "mixed lighting: cool window light clashing with warm overhead tungsten bulbs",
+            "flat, overcast daylight that is very even and shadowless",
+            "mixed lighting with cool window light clashing with warm overhead tungsten bulbs",
             "dappled sunlight filtering through tree leaves",
-            "golden hour sunlight casting long, natural shadows and causing slight squinting",
+            "golden hour sunlight casting long shadows and causing slight squinting",
             "cheap overhead fluorescent lighting creating unflattering downward shadows"
         ]
 
         self.camera_hardware_poor = [
-            "shot on a scratched, old budget smartphone from 2013, high noise, soft details",
-            "grainy, noisy point-and-shoot digital photo, poor low-light performance",
-            "taken with a very basic, older budget Android, artifacting and blur"
+            "shot on a scratched, old budget smartphone from 2013 with high noise and soft details",
+            "taken as a grainy, noisy point-and-shoot digital photo with poor low-light performance",
+            "taken with a very basic, older budget Android showing artifacting and blur"
         ]
         
         self.camera_hardware_middle = [
-            "candid smartphone photo from an average 2018 model, natural grain",
-            "unfiltered older iPhone photo, soft focus, raw and unedited",
-            "shot on a mid-range phone camera, slight motion blur, casual feel"
+            "captured as a candid smartphone photo from an average 2018 model with natural grain",
+            "shot as an unfiltered older iPhone photo with soft focus",
+            "taken on a mid-range phone camera with slight motion blur"
         ]
         
         self.camera_hardware_wealthy = [
-            "candid moment captured on a newer smartphone, raw feel, natural depth but unedited",
-            "photo taken by a companion on their high-end phone, unposed, natural ambient light",
-            "casual snapshot on a modern flagship phone, strictly no filters applied, slight grain"
+            "captured on a newer smartphone with a raw feel and natural depth",
+            "taken by a companion on their high-end phone with natural ambient light",
+            "shot as a casual snapshot on a modern flagship phone with slight digital grain"
         ]
         
         self.timeframes = [
             "Taken exactly one year ago on a normal day",
             "Captured 14 months prior to any incidents",
-            "A casual memory from a year before the events",
-            "An everyday snapshot taken a year in the past"
+            "This is a casual memory from a year before the events",
+            "This is an everyday snapshot taken a year in the past"
         ]
 
         self.framings = [
-            "Selfie: subject holding camera with one arm, slight wide-angle distortion",
-            "Mirror Selfie: subject holding phone up to a mirror, casual posture",
-            "Companion Shot: taken by a friend across a table, eye-level, relaxed distance",
-            "Companion Shot: taken by a partner, close proximity, candid",
-            "Environmental Candid: mid-body shot from a distance, interacting with the setting",
-            "Action Snapshot: caught mid-movement, slightly off-center, imperfect framing"
+            "framed as a Selfie with the subject holding the camera with one arm, showing slight wide-angle distortion",
+            "framed as a Mirror Selfie with the subject holding their phone up to a mirror",
+            "framed as a Companion Shot taken by a friend across a table at relaxed distance",
+            "framed as a candid Companion Shot taken by a partner in close proximity",
+            "framed as an Environmental Candid mid-body shot from a distance",
+            "framed as an Action Snapshot caught mid-movement and slightly off-center"
         ]
 
         self.expressions = [
-            "laughing mid-sentence, genuine and unposed",
-            "soft, relaxed, contented smile",
-            "confident, slightly goofy grin",
-            "peace sign thrown up with a wide, spontaneous smile",
-            "serene, calm expression, looking slightly off-camera",
-            "awkward but polite smile, looking directly at the lens"
+            "laughing mid-sentence, looking genuine and unposed",
+            "showing a soft, relaxed, contented smile",
+            "showing a confident, slightly goofy grin",
+            "throwing up a peace sign with a wide, spontaneous smile",
+            "showing a serene, calm expression and looking slightly off-camera",
+            "showing an awkward but polite smile"
         ]
 
     def _load_history(self):
@@ -149,21 +149,21 @@ class TheiaPromptGenerator:
 
         wealth_modifier = ""
         if socioeconomic_status.lower() in ["wealthy", "rich", "high class"]:
-            wealth_modifier = "wearing high-quality, well-fitted clothing, environment looks maintained"
+            wealth_modifier = "They are wearing high-quality, well-fitted clothing."
         elif socioeconomic_status.lower() in ["poor", "struggling", "working class"]:
-            wealth_modifier = "wearing worn, slightly faded clothing, environment looks lived-in and cluttered"
+            wealth_modifier = "They are wearing worn, slightly faded clothing."
         else:
-            wealth_modifier = "wearing standard, everyday casual clothing"
+            wealth_modifier = "They are wearing standard, everyday casual clothing."
 
+        # Natural language prompt to stop the AI from making diagrams
         prompt = (
-            f"A highly realistic amateur photograph of {character_name}. "
-            f"TIMEFRAME & CONTEXT: {timeframe}, completely unrelated to any future tragedy. "
-            f"FACIAL GEOMETRY: {bone}. SKIN TEXTURE: {skin}. "
-            f"EXPRESSION: {expression}. EYE CONTACT: looking at the camera. "
-            f"ATTIRE/VIBE: {wealth_modifier}. "
-            f"SETTING: {environment}. "
-            f"LIGHTING: {lighting}. "
-            f"CAMERA/FRAMING: {framing}. {camera}. "
+            f"A raw, candid, unedited amateur photograph of a person named {character_name}. "
+            f"They have {bone}, and their skin shows {skin}. "
+            f"They are {expression}, making direct eye contact with the camera lens. "
+            f"{wealth_modifier} "
+            f"The photo is set in {environment}, featuring {lighting}. "
+            f"The image is {framing}, and it was {camera}. "
+            f"{timeframe}, completely unrelated to any future tragedy."
         )
         return prompt, genetic_signature
 
@@ -279,7 +279,7 @@ SCRIPT TO ANALYZE:
 
 # --- MAIN APP ---
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.0 Enterprise SDXL</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.0 Enterprise FLUX</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -289,7 +289,7 @@ if password_input == ACCESS_PASSWORD:
     
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
-        st.sidebar.info("🎨 Engine: Stable Diffusion XL")
+        st.sidebar.info("🎨 Engine: FLUX.1 Schnell (Realism)")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
     else:
         st.sidebar.error("❌ API Keys Missing in Streamlit Secrets")
@@ -306,7 +306,6 @@ if password_input == ACCESS_PASSWORD:
                     model = genai.GenerativeModel("gemini-2.5-pro")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
                     
-                    # Ultra-safe JSON extraction (bypasses UI copy-paste bugs)
                     raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
                     character_data = json.loads(raw_json)
                     
@@ -323,14 +322,15 @@ if password_input == ACCESS_PASSWORD:
                         prompt, genetics = theia_engine.generate_prompt(name, status)
                         st.caption(f"**Locked Genetic Hash:** `{genetics}`")
                         
-                        with st.spinner(f"Rendering raw photograph for {name} via Stable Diffusion..."):
+                        with st.spinner(f"Rendering raw photograph for {name} via FLUX.1..."):
+                            # Upgraded to FLUX.1 for flawless photorealism
                             output = replicate.run(
-                                "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+                                "black-forest-labs/flux-schnell",
                                 input={
                                     "prompt": prompt,
-                                    "negative_prompt": "3D render, cartoon, stylized, anime, professional studio photography, cinematic lighting, over-sharpened, 4k, hyper-detailed digital art, crying, sad expression, posing stiffly, artificial uncanny valley",
-                                    "num_inference_steps": 25,
-                                    "apply_watermark": False
+                                    "aspect_ratio": "3:4",
+                                    "output_format": "jpg",
+                                    "output_quality": 90
                                 }
                             )
                             
