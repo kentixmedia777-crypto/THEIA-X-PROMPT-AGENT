@@ -268,7 +268,7 @@ You are an expert script analyst. Read the following true crime/documentary scri
 Do NOT extract background roles (e.g., "Paramedic", "Police Officer 1").
 For each character, determine their socioeconomic status based on context clues (e.g., "wealthy", "middle class", "struggling").
 
-You MUST return ONLY a raw JSON array of objects. Do not wrap it in markdown block quotes (no ```json). Just the raw text.
+You MUST return ONLY a raw JSON array of objects. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
 [
     {"name": "John Doe", "socioeconomic_status": "middle class"}
@@ -306,8 +306,42 @@ if password_input == ACCESS_PASSWORD:
                     model = genai.GenerativeModel("gemini-2.5-pro")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
                     
-                    raw_json = response.text.strip()
-                    if raw_json.startswith("
-http://googleusercontent.com/immersive_entry_chip/0
-http://googleusercontent.com/immersive_entry_chip/1
-http://googleusercontent.com/immersive_entry_chip/2
+                    # Ultra-safe JSON extraction (bypasses UI copy-paste bugs)
+                    raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
+                    character_data = json.loads(raw_json)
+                    
+                    st.markdown("---")
+                    st.success(f"✅ Extraction Complete: Found {len(character_data)} Subjects")
+                    
+                    theia_engine = TheiaPromptGenerator()
+                    
+                    for char in character_data:
+                        name = char.get("name", "Unknown Subject")
+                        status = char.get("socioeconomic_status", "middle class")
+                        
+                        st.markdown(f"### 📸 Subject: {name}")
+                        prompt, genetics = theia_engine.generate_prompt(name, status)
+                        st.caption(f"**Locked Genetic Hash:** `{genetics}`")
+                        
+                        with st.spinner(f"Rendering raw photograph for {name} via Stable Diffusion..."):
+                            output = replicate.run(
+                                "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
+                                input={
+                                    "prompt": prompt,
+                                    "negative_prompt": "3D render, cartoon, stylized, anime, professional studio photography, cinematic lighting, over-sharpened, 4k, hyper-detailed digital art, crying, sad expression, posing stiffly, artificial uncanny valley",
+                                    "num_inference_steps": 25,
+                                    "apply_watermark": False
+                                }
+                            )
+                            
+                            image_url = output[0]
+                            st.image(image_url, use_container_width=True)
+                            st.code(prompt, language="markdown")
+                        
+                except Exception as e:
+                    st.error("❌ System Processing Error")
+                    st.code(f"Error Details: {e}")
+        else:
+            st.warning("⚠️ Input Buffer Empty. Please paste a script.")
+elif password_input:
+    st.sidebar.error("❌ Access Denied. Invalid Passcode.")
