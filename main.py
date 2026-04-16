@@ -123,13 +123,14 @@ class TheiaPromptGenerator:
 
         wealth_modifier = "wearing worn, slightly faded everyday clothing." if socioeconomic_status.lower() in ["poor", "struggling"] else "wearing standard everyday casual clothing."
 
+        # OpenAI prefers conversational, descriptive prompts over tags
         prompt = (
-            f"A completely mundane, highly amateur candid snapshot of {character_name}. "
-            f"{camera}. They have {bone}. {skin}. "
-            f"Dynamic unposed expression: {expression}. "
+            f"A completely mundane, highly amateur candid snapshot of a real person named {character_name}. "
+            f"The image looks like it was {camera}. They have {bone}. Their skin features {skin}. "
+            f"They are showing a dynamic unposed expression: {expression}. "
             f"The image is {framing}. SETTING: {environment}, {wealth_modifier}. "
             f"LIGHTING: {lighting}. {timeframe}, unrelated to any future tragedy. "
-            f"NATURAL COMPOSITION, Spontaneous Snapshot (zero posing, absolutely zero AI airbrushing, low aesthetic score, analog documentary photography)."
+            f"It must look like a raw, unedited, spontaneous snapshot with zero posing, absolutely zero AI airbrushing, and a low aesthetic score."
         )
         return prompt, genetic_signature
 
@@ -232,7 +233,7 @@ SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.4 Enterprise Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.5 Enterprise Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -242,7 +243,7 @@ if password_input == ACCESS_PASSWORD:
     
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
-        st.sidebar.info("🎨 Engine: FLUX.1 Dev (Analog Config)")
+        st.sidebar.info("🎨 Engine: OpenAI GPT-Image 1.5")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
         st.sidebar.info("🛠️ Post-Processing: Active")
     
@@ -256,7 +257,7 @@ if password_input == ACCESS_PASSWORD:
     if st.button("INITIALIZE THEIA ENGINE"):
         if user_script:
             st.session_state.generated_subjects = [] # Clear old memory
-            with st.spinner("Analyzing variables and rendering via FLUX.1 Dev..."):
+            with st.spinner("Analyzing variables and rendering via OpenAI..."):
                 try:
                     model = genai.GenerativeModel("gemini-2.5-pro")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
@@ -271,10 +272,15 @@ if password_input == ACCESS_PASSWORD:
                         status = char.get("socioeconomic_status", "middle class")
                         prompt, genetics = theia_engine.generate_prompt(name, status)
                         
-                        # Generate Image
+                        # Generate Image using OpenAI on Replicate
                         output = replicate.run(
-                            "black-forest-labs/flux-dev",
-                            input={"prompt": prompt, "aspect_ratio": "3:4", "output_format": "jpg", "output_quality": 100, "guidance": 3.5, "num_inference_steps": 28}
+                            "openai/gpt-image-1.5",
+                            input={
+                                "prompt": prompt,
+                                "size": "1024x1024",
+                                "quality": "hd",
+                                "style": "natural"
+                            }
                         )
                         
                         # Download image into memory
@@ -322,7 +328,7 @@ if password_input == ACCESS_PASSWORD:
             with col3:
                 sharpness = st.slider("Sharpness", 0.0, 2.5, key=f"s_{name}")
             
-            # FIX: The secure callback button
+            # The secure callback button
             st.button("↩️ Reset Edits (Undo)", key=f"reset_{name}", on_click=reset_edits, args=(name,))
             
             # Apply PIL Edits
