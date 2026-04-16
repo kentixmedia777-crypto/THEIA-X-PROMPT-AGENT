@@ -1,10 +1,10 @@
 import streamlit as st
 import google.generativeai as genai
+import replicate
 import json
 import random
 import hashlib
 import os
-import re
 
 # --- CONFIGURATION ---
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
@@ -15,7 +15,6 @@ class TheiaPromptGenerator:
     def __init__(self):
         self.history = self._load_history()
 
-        # Anatomical & Photographic Dictionaries
         self.bone_structures = [
             "prominent supraorbital ridge with wide zygomatic bones",
             "flat midface with a weak receding chin and soft jawline",
@@ -24,7 +23,11 @@ class TheiaPromptGenerator:
             "round facial structure with soft cheeks and a broad alar base",
             "narrow, angular face with a pronounced dorsal hump on the nose",
             "strong, square mandibular structure with wide-set eyes",
-            "soft, oval face with epicanthic folds and a delicate chin"
+            "soft, oval face with epicanthic folds and a delicate chin",
+            "symmetrical facial structure, strong defined jawline, high cheekbones",
+            "delicate and balanced features, straight nasal bridge, almond-shaped eyes",
+            "handsome, conventionally attractive proportions, strong chin, relaxed brow",
+            "beautiful natural bone structure, soft jawline, large expressive eyes"
         ]
 
         self.skin_textures = [
@@ -33,7 +36,11 @@ class TheiaPromptGenerator:
             "unretouched skin texture, slight rosacea on the cheeks, razor burn",
             "realistic peach fuzz, uneven pigmentation, natural skin tone",
             "weathered skin, deep laugh lines, slight under-eye bags",
-            "matte but natural skin, slight imperfection on the forehead, visible capillaries"
+            "matte but natural skin, slight imperfection on the forehead, visible capillaries",
+            "clear complexion, very faint natural freckles, soft natural lighting reflection",
+            "well-maintained skin, slight natural shine on the nose, realistic pores but no major blemishes",
+            "naturally healthy glow, faint laugh lines, clean unedited look",
+            "smooth skin with a subtle, everyday smartphone beauty filter applied, slight digital smoothing"
         ]
 
         self.environments = [
@@ -57,12 +64,29 @@ class TheiaPromptGenerator:
             "cheap overhead fluorescent lighting creating unflattering downward shadows"
         ]
 
-        self.camera_hardware = [
-            "shot on iPhone 6 front camera, slight digital grain, low dynamic range",
-            "shot on disposable Kodak camera, light leak, gritty film texture",
-            "shot on a companion's Samsung Galaxy, soft focus, raw and unedited",
-            "shot on 35mm Fujifilm, slight chromatic aberration, organic colors",
-            "shot on early 2010s digital point-and-shoot, slight red-eye effect"
+        self.camera_hardware_poor = [
+            "shot on a scratched, old budget smartphone from 2013, high noise, soft details",
+            "grainy, noisy point-and-shoot digital photo, poor low-light performance",
+            "taken with a very basic, older budget Android, artifacting and blur"
+        ]
+        
+        self.camera_hardware_middle = [
+            "candid smartphone photo from an average 2018 model, natural grain",
+            "unfiltered older iPhone photo, soft focus, raw and unedited",
+            "shot on a mid-range phone camera, slight motion blur, casual feel"
+        ]
+        
+        self.camera_hardware_wealthy = [
+            "candid moment captured on a newer smartphone, raw feel, natural depth but unedited",
+            "photo taken by a companion on their high-end phone, unposed, natural ambient light",
+            "casual snapshot on a modern flagship phone, strictly no filters applied, slight grain"
+        ]
+        
+        self.timeframes = [
+            "Taken exactly one year ago on a normal day",
+            "Captured 14 months prior to any incidents",
+            "A casual memory from a year before the events",
+            "An everyday snapshot taken a year in the past"
         ]
 
         self.framings = [
@@ -97,7 +121,6 @@ class TheiaPromptGenerator:
             json.dump(list(self.history), f)
 
     def generate_prompt(self, character_name, socioeconomic_status="middle class"):
-        # 1. Unique Genetics Loop
         is_unique = False
         while not is_unique:
             bone = random.choice(self.bone_structures)
@@ -110,14 +133,20 @@ class TheiaPromptGenerator:
                 self._save_history()
                 is_unique = True
 
-        # 2. Variable Selection
         environment = random.choice(self.environments)
         lighting = random.choice(self.lighting_conditions)
-        camera = random.choice(self.camera_hardware)
         framing = random.choice(self.framings)
         expression = random.choice(self.expressions)
 
-        # 3. Status Modifier
+        if socioeconomic_status.lower() in ["poor", "struggling", "working class"]:
+            camera = random.choice(self.camera_hardware_poor)
+        elif socioeconomic_status.lower() in ["wealthy", "rich", "high class"]:
+            camera = random.choice(self.camera_hardware_wealthy)
+        else:
+            camera = random.choice(self.camera_hardware_middle)
+            
+        timeframe = random.choice(self.timeframes)
+
         wealth_modifier = ""
         if socioeconomic_status.lower() in ["wealthy", "rich", "high class"]:
             wealth_modifier = "wearing high-quality, well-fitted clothing, environment looks maintained"
@@ -126,29 +155,24 @@ class TheiaPromptGenerator:
         else:
             wealth_modifier = "wearing standard, everyday casual clothing"
 
-        # 4. Prompt Assembly
         prompt = (
-            f"A raw, unedited, highly realistic amateur photograph of {character_name}. "
+            f"A highly realistic amateur photograph of {character_name}. "
+            f"TIMEFRAME & CONTEXT: {timeframe}, completely unrelated to any future tragedy. "
             f"FACIAL GEOMETRY: {bone}. SKIN TEXTURE: {skin}. "
             f"EXPRESSION: {expression}. EYE CONTACT: looking at the camera. "
             f"ATTIRE/VIBE: {wealth_modifier}. "
             f"SETTING: {environment}. "
             f"LIGHTING: {lighting}. "
             f"CAMERA/FRAMING: {framing}. {camera}. "
-            f"--no cinematic lighting, 3D render, studio lighting, plastic skin, AI filter, professional photography, sad expression, crying, posing stiffly, flawless skin"
         )
         return prompt, genetic_signature
 
-
-# --- UI SETUP (GLASSMORPHISM & DISCORD GRADIENT THEME) ---
+# --- UI SETUP ---
 st.set_page_config(page_title="THEIA PRO", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
-    /* IMPORT PROFESSIONAL FONT (Inter) */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
-
-    /* BASE THEME: Deep Black/Purple */
     .stApp { 
         background-color: #0b0c10; 
         background-image: radial-gradient(circle at 15% 50%, rgba(88, 101, 242, 0.05), transparent 25%), 
@@ -156,16 +180,12 @@ st.markdown("""
         font-family: 'Inter', sans-serif; 
         color: #e4e6eb;
     }
-    
-    /* SIDEBAR LIQUID GLASS */
     [data-testid="stSidebar"] { 
         background: rgba(30, 31, 34, 0.6) !important;
         backdrop-filter: blur(16px) !important;
         -webkit-backdrop-filter: blur(16px) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.05);
     }
-    
-    /* CUSTOM TITLE HEADER (Discord Gradient) */
     .custom-title {
         font-family: 'Inter', sans-serif;
         font-weight: 900;
@@ -177,7 +197,6 @@ st.markdown("""
         margin-bottom: 0px;
         padding-bottom: 0px;
     }
-    
     .custom-subtitle {
         font-family: 'Inter', sans-serif;
         font-weight: 300;
@@ -189,10 +208,7 @@ st.markdown("""
         padding-bottom: 20px;
         letter-spacing: 1px;
     }
-
     h3, h4, p, label, .stMarkdown { color: #dbdee1 !important; }
-    
-    /* GLASSMORPHISM INPUT FIELDS */
     .stTextArea textarea, .stTextInput input { 
         background: rgba(43, 45, 49, 0.7) !important; 
         backdrop-filter: blur(10px);
@@ -208,8 +224,6 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(88, 101, 242, 0.3); 
         background: rgba(43, 45, 49, 0.9) !important;
     }
-    
-    /* GRADIENT BUTTONS */
     .stButton>button { 
         background: linear-gradient(135deg, #5865F2 0%, #a23db8 100%); 
         color: white; 
@@ -227,8 +241,6 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5); 
     }
-    
-    /* ALERTS & PANELS */
     .stAlert { 
         background: rgba(43, 45, 49, 0.5); 
         backdrop-filter: blur(10px);
@@ -244,11 +256,12 @@ st.markdown("""
 # --- SECURITY & API CONFIG ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    replicate_key = st.secrets["REPLICATE_API_TOKEN"]
     API_STATUS = True
 except:
     API_STATUS = False
 
-# --- SYSTEM EXTRACTION PROMPT FOR GEMINI 1.5 PRO ---
+# --- SYSTEM EXTRACTION PROMPT ---
 EXTRACTION_PROMPT = """
 You are an expert script analyst. Read the following true crime/documentary script and extract all the significant, named characters.
 Do NOT extract background roles (e.g., "Paramedic", "Police Officer 1").
@@ -257,8 +270,7 @@ For each character, determine their socioeconomic status based on context clues 
 You MUST return ONLY a raw JSON array of objects. Do not wrap it in markdown block quotes (no ```json). Just the raw text.
 Format example:
 [
-    {"name": "John Doe", "socioeconomic_status": "middle class"},
-    {"name": "Jane Smith", "socioeconomic_status": "wealthy"}
+    {"name": "John Doe", "socioeconomic_status": "middle class"}
 ]
 
 SCRIPT TO ANALYZE:
@@ -266,7 +278,7 @@ SCRIPT TO ANALYZE:
 
 # --- MAIN APP ---
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.0 Enterprise</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.0 Enterprise SDXL</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -275,11 +287,11 @@ if password_input == ACCESS_PASSWORD:
     st.sidebar.markdown("---")
     
     if API_STATUS:
-        st.sidebar.info("🔑 Gemini Pro: ACTIVE")
+        st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
+        st.sidebar.info("🎨 Engine: Stable Diffusion XL")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
-        st.sidebar.info("⚙️ Engine: Python Theia v5")
     else:
-        st.sidebar.error("❌ API Key Missing in Streamlit Secrets")
+        st.sidebar.error("❌ API Keys Missing in Streamlit Secrets")
     
     st.markdown("#### 🎬 Script Ingestion")
     user_script = st.text_area("Input Stream", height=250, placeholder="Paste your documentary/narrative script here...", label_visibility="collapsed")
@@ -288,47 +300,13 @@ if password_input == ACCESS_PASSWORD:
     
     if st.button("INITIALIZE THEIA ENGINE"):
         if user_script:
-            # Step 1: LLM Extraction using GEMINI PRO
-            with st.spinner("Theia is analyzing narrative variables using Gemini 1.5 Pro..."):
+            with st.spinner("Theia is analyzing narrative variables using Gemini 2.5 Pro..."):
                 try:
-                    # Using the advanced pro model as requested
                     model = genai.GenerativeModel("gemini-2.5-pro")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
                     
-                    # Clean the JSON output (in case Gemini adds markdown formatting despite instructions)
                     raw_json = response.text.strip()
-                    if raw_json.startswith("```json"):
-                        raw_json = raw_json[7:]
-                    if raw_json.startswith("```"):
-                        raw_json = raw_json[3:]
-                    if raw_json.endswith("```"):
-                        raw_json = raw_json[:-3]
-                    
-                    character_data = json.loads(raw_json.strip())
-                    
-                    st.markdown("---")
-                    st.success(f"✅ Extraction Complete: Found {len(character_data)} Subjects")
-                    
-                    # Step 2: Python Generation Loop
-                    theia_engine = TheiaPromptGenerator()
-                    
-                    for char in character_data:
-                        name = char.get("name", "Unknown Subject")
-                        status = char.get("socioeconomic_status", "middle class")
-                        
-                        prompt, genetics = theia_engine.generate_prompt(name, status)
-                        
-                        st.markdown(f"### 📸 Subject: {name}")
-                        st.caption(f"**Calculated Status:** {status.title()} | **Locked Genetic Hash:** `{genetics}`")
-                        st.code(prompt, language="markdown")
-                        
-                except Exception as e:
-                    st.error("❌ System Processing Error")
-                    st.code(f"Error Details: {e}")
-        else:
-            st.warning("⚠️ Input Buffer Empty. Please paste a script.")
-
-elif password_input:
-    st.sidebar.error("❌ Access Denied. Invalid Passcode.")
-else:
-    st.info("Please enter the passcode in the sidebar to access the Theia Engine.")
+                    if raw_json.startswith("
+http://googleusercontent.com/immersive_entry_chip/0
+http://googleusercontent.com/immersive_entry_chip/1
+http://googleusercontent.com/immersive_entry_chip/2
