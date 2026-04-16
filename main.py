@@ -13,7 +13,7 @@ from io import BytesIO
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
 HISTORY_FILE = "theia_genetic_history.json"
 
-# --- THEIA PYTHON ENGINE (ANTI-PLASTIC UPGRADE) ---
+# --- THEIA PYTHON ENGINE (ANALOG FILM UPGRADE) ---
 class TheiaPromptGenerator:
     def __init__(self):
         self.history = self._load_history()
@@ -30,10 +30,9 @@ class TheiaPromptGenerator:
         ]
 
         self.skin_textures = [
-            "UNRETOUCHED skin texture, raw highly detailed real skin pores, fine lines, uneven pigmentation, zero makeup",
-            "visible pores, natural sebum catching the light, faint acne scarring, high noise",
-            "sun-damaged skin with asymmetrical freckling, crow's feet around the eyes",
-            "harsh skin texture, slight rosacea on the cheeks, razor burn, completely unedited",
+            "raw unretouched skin, natural sebum catching the light, faint acne scarring, film grain",
+            "sun-damaged skin with asymmetrical freckling, deep crow's feet around the eyes",
+            "harsh skin texture, slight rosacea on the cheeks, razor burn, unedited snapshot",
             "realistic peach fuzz, uneven natural skin tone, slight under-eye bags with shadows",
             "matte but normal human skin, natural blemishes, visible capillaries on the nose"
         ]
@@ -55,12 +54,13 @@ class TheiaPromptGenerator:
             "overexposed direct sunlight creating blown-out highlights"
         ]
 
+        # Forced Analog/Disposable Cameras to kill the "Plastic" look
         self.camera_hardware = [
-            "taken on an older model smartphone camera from 2013, natural high ISO film grain",
-            "a grainy, noisy point-and-shoot digital photo, poor lens quality",
-            "taken with a basic budget Android phone, digital artifacting and slight blur",
-            "an unfiltered candid smartphone snapshot, mundane aesthetic",
-            "a casual, unedited phone camera shot, zero depth-of-field effect"
+            "shot on a cheap Kodak disposable camera, heavy chemical film grain, light leaks",
+            "taken on 35mm amateur analog film, gritty texture, slight chromatic aberration",
+            "a grainy, noisy Polaroid snapshot, poor lens quality, degraded film colors",
+            "an unfiltered candid film photograph, mundane aesthetic, high ISO noise",
+            "a casual, unedited disposable camera shot, zero depth-of-field effect, raw flash"
         ]
         
         self.timeframes = [
@@ -118,20 +118,21 @@ class TheiaPromptGenerator:
 
         wealth_modifier = "wearing worn, slightly faded everyday clothing." if socioeconomic_status.lower() in ["poor", "struggling"] else "wearing standard everyday casual clothing."
 
-        # The aggressive "Anti-AI" Prompt
+        # The Analog Realism Prompt
         prompt = (
             f"A completely mundane, highly amateur candid snapshot of {character_name}. "
             f"{camera}. They have {bone}. {skin}. "
             f"Dynamic unposed expression: {expression}. "
             f"The image is {framing}. SETTING: {environment}, {wealth_modifier}. "
             f"LIGHTING: {lighting}. {timeframe}, unrelated to any future tragedy. "
-            f"NATURAL COMPOSITION, Spontaneous Snapshot (zero posing, no digital smoothing, absolutely zero AI airbrushing, low aesthetic score)."
+            f"NATURAL COMPOSITION, Spontaneous Snapshot (zero posing, absolutely zero AI airbrushing, low aesthetic score, analog documentary photography)."
         )
         return prompt, genetic_signature
 
 # --- UI SETUP ---
 st.set_page_config(page_title="THEIA PRO", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
 
+# Combined CSS to style BOTH the initialize button and the download button
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
@@ -186,22 +187,24 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(88, 101, 242, 0.3); 
         background: rgba(43, 45, 49, 0.9) !important;
     }
-    .stButton>button { 
-        background: linear-gradient(135deg, #5865F2 0%, #a23db8 100%); 
-        color: white; 
-        border-radius: 8px; 
-        font-weight: 700; 
-        border: none; 
-        padding: 12px 28px; 
-        text-transform: uppercase; 
-        letter-spacing: 1px;
-        font-family: 'Inter', sans-serif;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    
+    /* Applies gradient glassmorphism to ALL buttons (Initialize, Undo, and Download) */
+    .stButton>button, .stDownloadButton>button { 
+        background: linear-gradient(135deg, #5865F2 0%, #a23db8 100%) !important; 
+        color: white !important; 
+        border-radius: 8px !important; 
+        font-weight: 700 !important; 
+        border: none !important; 
+        padding: 12px 28px !important; 
+        text-transform: uppercase !important; 
+        letter-spacing: 1px !important;
+        font-family: 'Inter', sans-serif !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     }
-    .stButton>button:hover { 
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5); 
+    .stButton>button:hover, .stDownloadButton>button:hover { 
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(88, 101, 242, 0.5) !important; 
     }
 </style>
 """, unsafe_allow_html=True)
@@ -228,7 +231,7 @@ SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.2 Enterprise Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.3 Enterprise Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -238,7 +241,9 @@ if password_input == ACCESS_PASSWORD:
     
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
-        st.sidebar.info("🎨 Engine: FLUX.1 Dev")
+        st.sidebar.info("🎨 Engine: FLUX.1 Dev (Analog Config)")
+        # RESTORED AUTH TAG
+        st.sidebar.info("🏢 Auth: Lucalles Productions")
         st.sidebar.info("🛠️ Post-Processing: Active")
     
     # --- SESSION STATE MEMORY ---
@@ -304,13 +309,26 @@ if password_input == ACCESS_PASSWORD:
             
             # 2. The Photo Editor Sliders
             st.markdown("##### 🎛️ Post-Processing Adjustments")
+            
+            # Initialize slider defaults in session state if they don't exist
+            if f"b_{name}" not in st.session_state: st.session_state[f"b_{name}"] = 1.0
+            if f"c_{name}" not in st.session_state: st.session_state[f"c_{name}"] = 1.0
+            if f"s_{name}" not in st.session_state: st.session_state[f"s_{name}"] = 1.0
+            
             col1, col2, col3 = st.columns(3)
             with col1:
-                brightness = st.slider("Brightness", 0.5, 1.5, 1.0, key=f"b_{name}")
+                brightness = st.slider("Brightness", 0.5, 1.5, key=f"b_{name}")
             with col2:
-                contrast = st.slider("Contrast", 0.5, 1.5, 1.0, key=f"c_{name}")
+                contrast = st.slider("Contrast", 0.5, 1.5, key=f"c_{name}")
             with col3:
-                sharpness = st.slider("Sharpness", 0.0, 2.5, 1.0, key=f"s_{name}")
+                sharpness = st.slider("Sharpness", 0.0, 2.5, key=f"s_{name}")
+            
+            # UNDO BUTTON
+            if st.button("↩️ Reset Edits (Undo)", key=f"reset_{name}"):
+                st.session_state[f"b_{name}"] = 1.0
+                st.session_state[f"c_{name}"] = 1.0
+                st.session_state[f"s_{name}"] = 1.0
+                st.rerun()
             
             # Apply PIL Edits
             base_img = Image.open(BytesIO(subject["image_bytes"]))
@@ -321,7 +339,7 @@ if password_input == ACCESS_PASSWORD:
             # 3. Display the Image
             st.image(final_img, use_container_width=True)
             
-            # 4. The Download Button
+            # 4. The Styled Download Button
             buf = BytesIO()
             final_img.save(buf, format="JPEG", quality=95)
             st.download_button(
