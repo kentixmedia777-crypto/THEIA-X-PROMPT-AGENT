@@ -13,79 +13,111 @@ from io import BytesIO
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
 HISTORY_FILE = "theia_genetic_history.json"
 
-# --- STREAMLIT CALLBACK FUNCTION (FIXES THE CRASH) ---
+# --- STREAMLIT CALLBACK FUNCTION ---
 def reset_edits(subject_name):
     st.session_state[f"b_{subject_name}"] = 1.0
     st.session_state[f"c_{subject_name}"] = 1.0
     st.session_state[f"s_{subject_name}"] = 1.0
 
-# --- THEIA PYTHON ENGINE ---
+# --- THEIA PYTHON ENGINE (TRUE CASTING UPGRADE) ---
 class TheiaPromptGenerator:
     def __init__(self):
         self.history = self._load_history()
 
-        self.bone_structures = [
-            "a prominent supraorbital ridge, slight facial asymmetry",
-            "a flat midface with a weak receding chin",
-            "an asymmetrical jaw structure with a slightly deviated septum",
-            "deep-set, hooded eyes with realistic uneven eyelids",
-            "a round facial structure with soft cheeks and a broad alar base",
-            "a narrow face with a pronounced dorsal hump on the nose",
-            "a strong mandibular structure, slight underbite",
-            "a completely ordinary, mundane facial structure, zero model proportions"
+        # Tier 1: Ordinary / Average
+        self.bone_average = [
+            "a completely ordinary, everyday facial structure",
+            "a flat midface with a soft, unassuming jawline",
+            "a round facial structure with soft cheeks and a broad alar base"
+        ]
+        self.skin_average = [
+            "raw unretouched skin, natural sebum catching the light, faint everyday blemishes",
+            "matte but normal human skin, very faint natural freckles, visible capillaries"
         ]
 
-        self.skin_textures = [
-            "raw unretouched skin, natural sebum catching the light, faint acne scarring, film grain",
-            "sun-damaged skin with asymmetrical freckling, deep crow's feet around the eyes",
-            "harsh skin texture, slight rosacea on the cheeks, razor burn, unedited snapshot",
-            "realistic peach fuzz, uneven natural skin tone, slight under-eye bags with shadows",
-            "matte but normal human skin, natural blemishes, visible capillaries on the nose"
+        # Tier 2: Flawed / Rugged / Ugly
+        self.bone_flawed = [
+            "a prominent supraorbital ridge with heavy facial asymmetry",
+            "a narrow face with a pronounced dorsal hump on the nose and a weak chin",
+            "an asymmetrical jaw structure with a slightly deviated septum and uneven eyes"
+        ]
+        self.skin_flawed = [
+            "harsh skin texture, deep acne scarring, visible pores, and uneven pigmentation",
+            "sun-damaged, weathered skin with deep crow's feet and unedited harsh blemishes"
+        ]
+
+        # Tier 3: Handsome / Beautiful / Striking
+        self.bone_attractive = [
+            "a strong, defined jawline with striking, conventionally attractive features",
+            "handsome, symmetrical proportions with a relaxed natural brow",
+            "delicate, beautiful, and balanced natural features"
+        ]
+        self.skin_attractive = [
+            "clear and well-maintained skin, slight natural shine on the nose, realistic human texture (not plastic)",
+            "a naturally healthy glow, completely unedited, faint laugh lines"
         ]
 
         self.environments = [
-            "an overgrown backyard with random clutter",
-            "a windy public park path, slightly messy background",
-            "a fluorescent-lit grocery store aisle (Aisle 4), background clutter of cereal boxes",
-            "a cramped, messy bedroom with clothes thrown around",
-            "a busy, unglamorous city crosswalk",
-            "a public restroom with harsh overhead mirror lighting"
+            "a bright, overgrown backyard on a weekend",
+            "a windy public park path with natural foliage in the background",
+            "a fluorescent-lit grocery store aisle with blurred shelves",
+            "a mildly messy bedroom with natural window light",
+            "a busy city crosswalk with concrete textures",
+            "sitting in the driver seat of a parked car",
+            "a warm, softly lit local coffee shop",
+            "a modern, clean apartment living room"
         ]
 
         self.lighting_conditions = [
-            "harsh direct camera flash creating strong unflattering drop shadows",
-            "flat, overcast mundane daylight, very even but dull",
-            "clashing mixed light: cool window light and a warm tungsten desk lamp",
-            "cheap overhead fluorescent lighting creating downward shadows",
-            "overexposed direct sunlight creating blown-out highlights"
+            "flat, overcast daylight, creating soft and even natural lighting",
+            "golden hour sunlight casting warm, long shadows",
+            "bright, natural window light illuminating one side of the face",
+            "harsh direct camera flash creating strong drop shadows",
+            "dappled sunlight filtering through tree leaves",
+            "mixed indoor lighting with cool window light and warm overhead bulbs"
         ]
 
-        self.camera_hardware = [
-            "shot on a cheap Kodak disposable camera, heavy chemical film grain, light leaks",
-            "taken on 35mm amateur analog film, gritty texture, slight chromatic aberration",
-            "a grainy, noisy Polaroid snapshot, poor lens quality, degraded film colors",
-            "an unfiltered candid film photograph, mundane aesthetic, high ISO noise",
-            "a casual, unedited disposable camera shot, zero depth-of-field effect, raw flash"
+        # Dynamic Camera Quality based on status
+        self.camera_hardware_poor = [
+            "shot on an older budget smartphone from 2015, slight digital noise, unedited",
+            "taken with a basic budget Android phone, raw image quality, slight motion blur",
+            "a grainy point-and-shoot digital photo, mundane amateur framing"
+        ]
+        
+        self.camera_hardware_middle = [
+            "a candid smartphone photo from an average modern phone, unretouched",
+            "shot as an unfiltered iPhone photo with natural focus, casual snapshot",
+            "taken on a mid-range phone camera, everyday documentary style"
+        ]
+        
+        self.camera_hardware_wealthy = [
+            "captured on a modern flagship smartphone with crisp, natural depth",
+            "taken by a friend on a high-end phone with beautiful ambient light, strictly no filters",
+            "a casual, high-quality unedited phone snapshot, natural sharpness"
         ]
         
         self.timeframes = [
             "Taken exactly one year ago on a normal day",
             "Captured 14 months prior to any incidents",
-            "A casual memory from a year before the events"
+            "A casual, happy memory from a year before the events",
+            "An everyday snapshot taken a year in the past"
         ]
 
         self.framings = [
-            "framed as an awkward Selfie, holding the camera with one arm, showing slight wide-angle lens distortion",
-            "framed as a mundane Mirror Selfie, imperfect focus",
-            "framed as an Environmental Candid mid-conversation, off-center",
-            "framed as a Spontaneous Snapshot caught mid-movement, unretouched composition"
+            "framed as a casual Selfie, holding the camera with one arm",
+            "framed as an Environmental Candid shot from waist-up, interacting with the space",
+            "framed as an unposed Companion Shot taken by a friend across a table",
+            "framed as an Action Snapshot caught mid-movement, slightly imperfect framing",
+            "framed as a candid profile shot, looking completely away from the camera"
         ]
 
         self.expressions = [
-            "laughing mid-sentence, head thrown back, non-symmetric smile",
-            "talking expressive face, completely unposed, natural resting face",
-            "an awkward but genuine smile, slight squint",
-            "mid-gesture, relaxed spontaneous posture, looking away naturally"
+            "laughing mid-sentence, looking genuine, joyful, and unposed",
+            "showing a soft, relaxed, contented smile",
+            "talking expressively, completely unposed natural face",
+            "an awkward but polite smile for the camera",
+            "mid-gesture, relaxed spontaneous posture, highly candid",
+            "a serene, calm expression, caught in thought"
         ]
 
     def _load_history(self):
@@ -101,11 +133,20 @@ class TheiaPromptGenerator:
         with open(HISTORY_FILE, 'w') as f:
             json.dump(list(self.history), f)
 
-    def generate_prompt(self, character_name, socioeconomic_status="middle class"):
+    def generate_prompt(self, character_name, socioeconomic_status="middle class", appearance_tier="average"):
         is_unique = False
         while not is_unique:
-            bone = random.choice(self.bone_structures)
-            skin = random.choice(self.skin_textures)
+            # Smart Appearance Selection
+            if appearance_tier == "handsome/beautiful":
+                bone = random.choice(self.bone_attractive)
+                skin = random.choice(self.skin_attractive)
+            elif appearance_tier == "flawed/ugly":
+                bone = random.choice(self.bone_flawed)
+                skin = random.choice(self.skin_flawed)
+            else:
+                bone = random.choice(self.bone_average)
+                skin = random.choice(self.skin_average)
+
             genetic_signature = f"{bone} | {skin}"
             sig_hash = hashlib.md5(genetic_signature.encode()).hexdigest()
             
@@ -118,19 +159,27 @@ class TheiaPromptGenerator:
         lighting = random.choice(self.lighting_conditions)
         framing = random.choice(self.framings)
         expression = random.choice(self.expressions)
-        camera = random.choice(self.camera_hardware)
         timeframe = random.choice(self.timeframes)
 
-        wealth_modifier = "wearing worn, slightly faded everyday clothing." if socioeconomic_status.lower() in ["poor", "struggling"] else "wearing standard everyday casual clothing."
+        # Smart Camera Selection
+        if socioeconomic_status.lower() in ["poor", "struggling", "working class"]:
+            camera = random.choice(self.camera_hardware_poor)
+            wealth_modifier = "wearing worn, slightly faded everyday clothing."
+        elif socioeconomic_status.lower() in ["wealthy", "rich", "high class"]:
+            camera = random.choice(self.camera_hardware_wealthy)
+            wealth_modifier = "wearing high-quality, well-fitted everyday clothing."
+        else:
+            camera = random.choice(self.camera_hardware_middle)
+            wealth_modifier = "wearing standard, everyday casual clothing."
 
-        # OpenAI prefers conversational, descriptive prompts over tags
+        # Final Assembly
         prompt = (
-            f"A completely mundane, highly amateur candid snapshot of a real person named {character_name}. "
+            f"A highly realistic, candid amateur photograph of a real person named {character_name}. "
             f"The image looks like it was {camera}. They have {bone}. Their skin features {skin}. "
             f"They are showing a dynamic unposed expression: {expression}. "
             f"The image is {framing}. SETTING: {environment}, {wealth_modifier}. "
-            f"LIGHTING: {lighting}. {timeframe}, unrelated to any future tragedy. "
-            f"It must look like a raw, unedited, spontaneous snapshot with zero posing, absolutely zero AI airbrushing, and a low aesthetic score."
+            f"LIGHTING: {lighting}. {timeframe}, completely unrelated to any future tragedy. "
+            f"It must look like a raw, unedited, spontaneous snapshot. Absolutely zero AI airbrushing, no plastic 3D skin, no beauty filters, and no studio lighting."
         )
         return prompt, genetic_signature
 
@@ -219,21 +268,23 @@ try:
 except:
     API_STATUS = False
 
+# --- SYSTEM EXTRACTION PROMPT (UPGRADED) ---
 EXTRACTION_PROMPT = """
 You are an expert script analyst. Read the following true crime/documentary script and extract all the significant, named characters.
 Do NOT extract background roles (e.g., "Paramedic", "Police Officer 1").
 For each character, determine their socioeconomic status based on context clues (e.g., "wealthy", "middle class", "struggling").
+Also determine their 'appearance_tier' based on their role or vibe in the story (choose exactly ONE: "average", "flawed/ugly", "handsome/beautiful"). If their appearance isn't obvious from the script, default strictly to "average".
 
 You MUST return ONLY a raw JSON array of objects. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
 [
-    {"name": "John Doe", "socioeconomic_status": "middle class"}
+    {"name": "John Doe", "socioeconomic_status": "middle class", "appearance_tier": "average"}
 ]
 SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.5.1 Enterprise Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.7 Enterprise Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -247,7 +298,6 @@ if password_input == ACCESS_PASSWORD:
         st.sidebar.info("🏢 Auth: Lucalles Productions")
         st.sidebar.info("🛠️ Post-Processing: Active")
     
-    # --- SESSION STATE MEMORY ---
     if 'generated_subjects' not in st.session_state:
         st.session_state.generated_subjects = []
 
@@ -256,12 +306,11 @@ if password_input == ACCESS_PASSWORD:
     
     if st.button("INITIALIZE THEIA ENGINE"):
         if user_script:
-            st.session_state.generated_subjects = [] # Clear old memory
-            with st.spinner("Analyzing variables and rendering via OpenAI..."):
+            st.session_state.generated_subjects = [] 
+            with st.spinner("Analyzing roles and casting authentic appearances via OpenAI..."):
                 try:
                     model = genai.GenerativeModel("gemini-2.5-pro")
                     response = model.generate_content(EXTRACTION_PROMPT + user_script)
-                    # Safe JSON extraction
                     raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
                     character_data = json.loads(raw_json)
                     
@@ -270,29 +319,29 @@ if password_input == ACCESS_PASSWORD:
                     for char in character_data:
                         name = char.get("name", "Unknown Subject")
                         status = char.get("socioeconomic_status", "middle class")
-                        prompt, genetics = theia_engine.generate_prompt(name, status)
+                        appearance = char.get("appearance_tier", "average")
                         
-                        # Generate Image using OpenAI on Replicate
+                        prompt, genetics = theia_engine.generate_prompt(name, status, appearance)
+                        
                         output = replicate.run(
                             "openai/gpt-image-1.5",
                             input={
                                 "prompt": prompt,
                                 "size": "1024x1024",
-                                "quality": "high", # <-- FIXED PARAMETER HERE
+                                "quality": "high", 
                                 "style": "natural"
                             }
                         )
                         
-                        # Download image into memory
                         image_url = str(output[0])
                         img_response = requests.get(image_url)
                         img_bytes = img_response.content
                         
-                        # Save to memory so sliders don't delete it
                         st.session_state.generated_subjects.append({
                             "name": name,
                             "prompt": prompt,
                             "hash": genetics,
+                            "appearance_tier": appearance,
                             "image_bytes": img_bytes
                         })
                 except Exception as e:
@@ -301,21 +350,19 @@ if password_input == ACCESS_PASSWORD:
         else:
             st.warning("⚠️ Input Buffer Empty. Please paste a script.")
 
-    # --- THE EDITING & DOWNLOAD INTERFACE ---
     if st.session_state.generated_subjects:
         st.markdown("---")
-        st.success(f"✅ Extraction & Rendering Complete: Found {len(st.session_state.generated_subjects)} Subjects")
+        st.success(f"✅ Extraction & Casting Complete: Found {len(st.session_state.generated_subjects)} Subjects")
         
         for subject in st.session_state.generated_subjects:
             name = subject["name"]
             st.markdown(f"### 📸 Subject: {name}")
-            st.caption(f"**Locked Genetic Hash:** `{subject['hash']}`")
+            st.caption(f"**Casting Tier:** `{subject['appearance_tier'].upper()}` | **Locked Hash:** `{subject['hash']}`")
             
             st.code(subject["prompt"], language="markdown")
             
             st.markdown("##### 🎛️ Post-Processing Adjustments")
             
-            # Initialize slider defaults
             if f"b_{name}" not in st.session_state: st.session_state[f"b_{name}"] = 1.0
             if f"c_{name}" not in st.session_state: st.session_state[f"c_{name}"] = 1.0
             if f"s_{name}" not in st.session_state: st.session_state[f"s_{name}"] = 1.0
@@ -328,10 +375,8 @@ if password_input == ACCESS_PASSWORD:
             with col3:
                 sharpness = st.slider("Sharpness", 0.0, 2.5, key=f"s_{name}")
             
-            # The secure callback button
             st.button("↩️ Reset Edits (Undo)", key=f"reset_{name}", on_click=reset_edits, args=(name,))
             
-            # Apply PIL Edits
             base_img = Image.open(BytesIO(subject["image_bytes"]))
             base_img = ImageEnhance.Brightness(base_img).enhance(brightness)
             base_img = ImageEnhance.Contrast(base_img).enhance(contrast)
