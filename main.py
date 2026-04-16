@@ -31,16 +31,16 @@ class TheiaPromptGenerator:
         ]
 
         self.skin_textures = [
-            "visible pores, natural sebum catching the light, and faint acne scarring",
-            "sun-damaged skin with asymmetrical freckling and fine lines around the eyes",
-            "unretouched skin texture, slight rosacea on the cheeks, and razor burn",
-            "realistic peach fuzz, uneven pigmentation, and a natural skin tone",
-            "weathered skin, deep laugh lines, and slight under-eye bags",
-            "matte but natural skin, a slight imperfection on the forehead, and visible capillaries",
-            "a clear complexion with very faint natural freckles",
-            "well-maintained skin with a slight natural shine on the nose and realistic pores",
-            "a naturally healthy glow with faint laugh lines",
-            "smooth skin with a subtle, everyday smartphone beauty filter applied"
+            "visible pores, oily sebum catching the light, and faint acne scarring",
+            "sun-damaged skin with asymmetrical freckling, fine lines, and zero makeup",
+            "harsh, unretouched skin texture, slight rosacea on the cheeks, and razor burn",
+            "realistic peach fuzz, uneven pigmentation, and a completely natural skin tone",
+            "weathered skin, deep laugh lines, and slight under-eye bags with realistic shadows",
+            "matte but natural skin, a slight blemish on the forehead, and visible capillaries",
+            "a normal complexion with very faint natural freckles and zero digital smoothing",
+            "everyday skin with a slight natural shine on the nose and highly detailed realistic pores",
+            "a naturally healthy glow with faint laugh lines, completely unedited",
+            "normal human skin with natural imperfections and no studio makeup"
         ]
 
         self.environments = [
@@ -56,8 +56,8 @@ class TheiaPromptGenerator:
         ]
 
         self.lighting_conditions = [
-            "harsh direct camera flash creating hard drop shadows",
-            "flat, overcast daylight that is very even and shadowless",
+            "harsh direct camera flash creating hard drop shadows and overexposure",
+            "flat, overcast daylight that is very mundane and shadowless",
             "mixed lighting with cool window light clashing with warm overhead tungsten bulbs",
             "dappled sunlight filtering through tree leaves",
             "golden hour sunlight casting long shadows and causing slight squinting",
@@ -65,21 +65,21 @@ class TheiaPromptGenerator:
         ]
 
         self.camera_hardware_poor = [
-            "shot on a scratched, old budget smartphone from 2013 with high noise and soft details",
-            "taken as a grainy, noisy point-and-shoot digital photo with poor low-light performance",
-            "taken with a very basic, older budget Android showing artifacting and blur"
+            "shot on a scratched, old budget smartphone from 2013 with high ISO digital noise, JPEG artifacts, and soft details",
+            "taken as a grainy, noisy point-and-shoot digital photo with poor low-light performance and color bleeding",
+            "taken with a very basic, older budget Android showing digital artifacting, chromatic aberration, and blur"
         ]
         
         self.camera_hardware_middle = [
-            "captured as a candid smartphone photo from an average 2018 model with natural grain",
-            "shot as an unfiltered older iPhone photo with soft focus",
-            "taken on a mid-range phone camera with slight motion blur"
+            "captured as a candid smartphone photo from an average 2018 model with natural sensor grain and no depth-of-field effect",
+            "shot as an unfiltered older iPhone photo with soft focus and a completely mundane aesthetic",
+            "taken on a mid-range phone camera with slight motion blur and basic auto-exposure"
         ]
         
         self.camera_hardware_wealthy = [
-            "captured on a newer smartphone with a raw feel and natural depth",
-            "taken by a companion on their high-end phone with natural ambient light",
-            "shot as a casual snapshot on a modern flagship phone with slight digital grain"
+            "captured on a newer smartphone with a raw, unedited feel and natural depth",
+            "taken by a companion on their high-end phone with natural ambient light, no filters applied",
+            "shot as a casual, mundane snapshot on a modern flagship phone with slight sensor grain"
         ]
         
         self.timeframes = [
@@ -90,19 +90,19 @@ class TheiaPromptGenerator:
         ]
 
         self.framings = [
-            "framed as a Selfie with the subject holding the camera with one arm, showing slight wide-angle distortion",
-            "framed as a Mirror Selfie with the subject holding their phone up to a mirror",
-            "framed as a Companion Shot taken by a friend across a table at relaxed distance",
-            "framed as a candid Companion Shot taken by a partner in close proximity",
-            "framed as an Environmental Candid mid-body shot from a distance",
-            "framed as an Action Snapshot caught mid-movement and slightly off-center"
+            "framed as an awkward Selfie with the subject holding the camera with one arm, showing heavy wide-angle lens distortion on the face",
+            "framed as a mundane Mirror Selfie with the subject holding their phone up to a mirror",
+            "framed as a candid Companion Shot taken by a friend across a table at relaxed distance",
+            "framed as an unposed Companion Shot taken by a partner in close proximity",
+            "framed as a boring Environmental Candid mid-body shot from a distance",
+            "framed as an amateur Action Snapshot caught mid-movement and slightly off-center"
         ]
 
         self.expressions = [
-            "laughing mid-sentence, looking genuine and unposed",
+            "laughing mid-sentence, looking genuine, awkward, and unposed",
             "showing a soft, relaxed, contented smile",
             "showing a confident, slightly goofy grin",
-            "throwing up a peace sign with a wide, spontaneous smile",
+            "throwing up a peace sign with a wide, spontaneous, un-posed smile",
             "showing a serene, calm expression and looking slightly off-camera",
             "showing an awkward but polite smile"
         ]
@@ -149,21 +149,23 @@ class TheiaPromptGenerator:
 
         wealth_modifier = ""
         if socioeconomic_status.lower() in ["wealthy", "rich", "high class"]:
-            wealth_modifier = "They are wearing high-quality, well-fitted clothing."
+            wealth_modifier = "They are wearing high-quality, well-fitted everyday clothing."
         elif socioeconomic_status.lower() in ["poor", "struggling", "working class"]:
-            wealth_modifier = "They are wearing worn, slightly faded clothing."
+            wealth_modifier = "They are wearing worn, slightly faded, cheap everyday clothing."
         else:
-            wealth_modifier = "They are wearing standard, everyday casual clothing."
+            wealth_modifier = "They are wearing standard, mundane, everyday casual clothing."
 
-        # Natural language prompt to stop the AI from making diagrams
+        # Upgraded heavily to penalize "AI Aesthetics"
         prompt = (
-            f"A raw, candid, unedited amateur photograph of a person named {character_name}. "
+            f"A completely mundane, highly amateur, unedited, real-life photograph of a person named {character_name}. "
+            f"Absolutely zero AI polish, zero studio lighting, low aesthetic score, documentary style. "
             f"They have {bone}, and their skin shows {skin}. "
             f"They are {expression}, making direct eye contact with the camera lens. "
             f"{wealth_modifier} "
             f"The photo is set in {environment}, featuring {lighting}. "
             f"The image is {framing}, and it was {camera}. "
-            f"{timeframe}, completely unrelated to any future tragedy."
+            f"{timeframe}, completely unrelated to any future tragedy. "
+            f"The image contains realistic textures, ordinary clothing folds, and genuine physical presence."
         )
         return prompt, genetic_signature
 
@@ -279,7 +281,7 @@ SCRIPT TO ANALYZE:
 
 # --- MAIN APP ---
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.0 Enterprise FLUX</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.1 Enterprise FLUX Dev</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -289,7 +291,7 @@ if password_input == ACCESS_PASSWORD:
     
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
-        st.sidebar.info("🎨 Engine: FLUX.1 Schnell (Realism)")
+        st.sidebar.info("🎨 Engine: FLUX.1 Dev (Heavy Realism)")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
     else:
         st.sidebar.error("❌ API Keys Missing in Streamlit Secrets")
@@ -322,15 +324,17 @@ if password_input == ACCESS_PASSWORD:
                         prompt, genetics = theia_engine.generate_prompt(name, status)
                         st.caption(f"**Locked Genetic Hash:** `{genetics}`")
                         
-                        with st.spinner(f"Rendering raw photograph for {name} via FLUX.1..."):
-                            # Upgraded to FLUX.1 for flawless photorealism
+                        with st.spinner(f"Rendering raw photograph for {name} via FLUX.1 Dev (This may take 10-15 seconds)..."):
+                            # Upgraded to FLUX.1 Dev (Heavyweight Realism Model)
                             output = replicate.run(
-                                "black-forest-labs/flux-schnell",
+                                "black-forest-labs/flux-dev",
                                 input={
                                     "prompt": prompt,
                                     "aspect_ratio": "3:4",
                                     "output_format": "jpg",
-                                    "output_quality": 90
+                                    "output_quality": 100,
+                                    "guidance": 3.5,
+                                    "num_inference_steps": 28
                                 }
                             )
                             
