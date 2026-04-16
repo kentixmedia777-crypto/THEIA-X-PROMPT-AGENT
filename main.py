@@ -257,6 +257,7 @@ st.markdown("""
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     replicate_key = st.secrets["REPLICATE_API_TOKEN"]
+    os.environ["REPLICATE_API_TOKEN"] = replicate_key
     API_STATUS = True
 except:
     API_STATUS = False
