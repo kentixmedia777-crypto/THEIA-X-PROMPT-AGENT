@@ -334,7 +334,7 @@ if password_input == ACCESS_PASSWORD:
                                 }
                             )
                             
-                            image_url = output[0]
+                            image_url = str(output[0])
                             st.image(image_url, use_container_width=True)
                             st.code(prompt, language="markdown")
                         
