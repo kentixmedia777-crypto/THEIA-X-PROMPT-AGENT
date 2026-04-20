@@ -419,11 +419,12 @@ if password_input == ACCESS_PASSWORD:
     with tab2:
         st.markdown("#### 🖼️ Image Generation & Editing")
         
+        # 1. UPDATED DROPDOWN ORDER
         model_choice = st.selectbox(
             "Select Generation Engine",
             [
+                "Google: Nano Banana (Gemini 3 Flash)", # Now the default!
                 "OpenAI GPT-Image 1.5 (Standard)", 
-                "Google: Nano Banana (Gemini 3 Flash)",
                 "Black Forest Labs: Flux.1 (Highly Photorealistic)",
                 "Stability AI: SDXL (Alternative Style)"
             ]
@@ -435,12 +436,11 @@ if password_input == ACCESS_PASSWORD:
             if manual_prompt:
                 with st.spinner(f"Rendering image using {model_choice}..."):
                     try:
-                        # AUDIT FIX: NANO BANANA DIRECT INTEGRATION
                         if "GPT-Image 1.5" in model_choice:
                             api_endpoint = "openai/gpt-image-1.5"
                             api_input = {"prompt": manual_prompt, "size": "1024x1024", "quality": "high", "style": "natural"}
                         elif "Nano Banana" in model_choice:
-                            api_endpoint = "google/nano-banana-2" # Replaced the error with the live endpoint!
+                            api_endpoint = "google/nano-banana-2" 
                             api_input = {"prompt": manual_prompt} 
                         elif "Flux.1" in model_choice:
                             api_endpoint = "black-forest-labs/flux-schnell"
@@ -472,9 +472,10 @@ if password_input == ACCESS_PASSWORD:
             else:
                 st.warning("⚠️ Please paste a prompt first.")
                 
+        # --- POST PROCESSING & CROPPING SECTION ---
         if "current_rendered_image" in st.session_state:
             st.markdown("---")
-            st.markdown("##### 🎛️ Post-Processing Adjustments")
+            st.markdown("##### 🎛️ Post-Processing & Cropping")
             
             if "b_manual" not in st.session_state: st.session_state["b_manual"] = 1.0
             if "c_manual" not in st.session_state: st.session_state["c_manual"] = 1.0
@@ -493,20 +494,34 @@ if password_input == ACCESS_PASSWORD:
             with col3:
                 sharpness = st.slider("Sharpness", 0.0, 2.5, key="s_manual")
             
-            st.button("↩️ Reset Edits (Undo)", on_click=reset_manual_edits)
+            st.button("↩️ Reset Sliders", on_click=reset_manual_edits)
             
+            # Apply enhancements first
             base_img = Image.open(BytesIO(st.session_state["current_rendered_image"]))
-            base_img = ImageEnhance.Brightness(base_img).enhance(brightness)
-            base_img = ImageEnhance.Contrast(base_img).enhance(contrast)
-            final_img = ImageEnhance.Sharpness(base_img).enhance(sharpness)
+            enhanced_img = ImageEnhance.Brightness(base_img).enhance(brightness)
+            enhanced_img = ImageEnhance.Contrast(enhanced_img).enhance(contrast)
+            enhanced_img = ImageEnhance.Sharpness(enhanced_img).enhance(sharpness)
             
-            st.image(final_img, use_container_width=True)
+            # 2. NEW CROPPING UI
+            st.markdown("---")
+            enable_crop = st.checkbox("✂️ Enable Cropping Tool")
             
+            if enable_crop:
+                st.caption("Drag the corners of the blue box to crop. The final image will be updated below.")
+                # This renders the interactive cropping box
+                final_img = st_cropper(enhanced_img, realtime_update=True, box_color='#5865F2', aspect_ratio=None)
+            else:
+                final_img = enhanced_img
+                # Only show the static image if cropping is disabled to avoid double-displaying
+                st.image(final_img, use_container_width=True)
+            
+            # Download button always uses the final_img (whether cropped or just enhanced)
             buf = BytesIO()
             final_img.save(buf, format="JPEG", quality=95)
+            st.markdown("<br>", unsafe_allow_html=True)
             st.download_button(
-                label="⬇️ Download Edited Render",
+                label="⬇️ Download Final Render",
                 data=buf.getvalue(),
-                file_name="theia_manual_render.jpg",
+                file_name="theia_studio_render.jpg",
                 mime="image/jpeg",
             )
