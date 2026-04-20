@@ -468,9 +468,13 @@ if password_input == ACCESS_PASSWORD:
             if manual_prompt:
                 with st.spinner(f"Rendering image using {model_choice}..."):
                     try:
-                        if "Nano Banana" in model_choice:
+                        if "Nano Banana 2" in model_choice:
                             api_endpoint = "google/nano-banana-2" 
-                            api_input = {"prompt": manual_prompt} 
+                            api_input = {
+                                "prompt": manual_prompt,
+                                "negative_prompt": "plastic, CGI, 3D, overly smooth, airbrushed, glossy skin, artificial, uncanny valley, deformed, cartoon, illustration, oversaturated, beauty filter",
+                                "output_quality": 100
+                            } 
                         elif "GPT-Image 1.5" in model_choice:
                             api_endpoint = "openai/gpt-image-1.5"
                             api_input = {"prompt": manual_prompt, "size": "1024x1024", "quality": "high", "style": "natural"}
