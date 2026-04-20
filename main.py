@@ -444,7 +444,7 @@ if password_input == ACCESS_PASSWORD:
     # ==========================================
     # MODIFICATION 2: UI TABS REPLACEMENT
     # ==========================================
-    tab1, tab2 = st.tabs(["📝 Prompt Studio (Free)", "🎨 Image Studio (Paid)"])
+    tab1, tab2 = st.tabs(["📝 Prompt Studio", "🎨 Image Studio"])
 
     # --- TAB 1: PROMPT STUDIO ---
     with tab1:
