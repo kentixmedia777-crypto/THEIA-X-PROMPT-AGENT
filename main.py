@@ -9,6 +9,8 @@ import requests
 import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 from PIL import Image, ImageEnhance
 from io import BytesIO
 
@@ -16,8 +18,8 @@ from io import BytesIO
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
 HISTORY_FILE = "theia_genetic_history.json"
 
-# --- PERSISTENT BILLING LOGIC (GOOGLE SHEETS DATABASE) ---
-def get_gspread_client():
+# --- GCP & DRIVE AUTHENTICATION (ADDED MISSING DRIVE HELPERS) ---
+def get_gcp_credentials():
     creds_dict = {
         "type": st.secrets["gcp_service_account"]["type"],
         "project_id": st.secrets["gcp_service_account"]["project_id"],
@@ -32,9 +34,40 @@ def get_gspread_client():
         "universe_domain": "googleapis.com"
     }
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    return ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+
+def get_drive_service():
+    creds = get_gcp_credentials()
+    return build('drive', 'v3', credentials=creds)
+
+def get_gspread_client():
+    creds = get_gcp_credentials()
     return gspread.authorize(creds)
 
+def upload_to_drive(file_bytes, filename, folder_id):
+    drive_service = get_drive_service()
+    file_metadata = {'name': filename, 'parents': [folder_id]}
+    media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype='image/jpeg', resumable=True)
+    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    return file.get('id')
+
+def get_drive_images(folder_id):
+    drive_service = get_drive_service()
+    query = f"'{folder_id}' in parents and trashed=false and mimeType contains 'image/'"
+    results = drive_service.files().list(q=query, fields="files(id, name, thumbnailLink)").execute()
+    return results.get('files', [])
+
+def download_drive_image(file_id):
+    drive_service = get_drive_service()
+    request = drive_service.files().get_media(fileId=file_id)
+    file = BytesIO()
+    downloader = MediaIoBaseDownload(file, request)
+    done = False
+    while done is False:
+        status, done = downloader.next_chunk()
+    return file.getvalue()
+
+# --- PERSISTENT BILLING LOGIC (GOOGLE SHEETS DATABASE) ---
 def load_billing():
     try:
         client = get_gspread_client()
@@ -120,7 +153,6 @@ class TheiaPromptGenerator:
             "highly detailed and coarse skin texture, showing visible pores and an uneven, raw complexion"
         ]
 
-        # NEW: MASTER BODY TYPES (Somatotypes & Shapes)
         self.body_types = [
             "an Ectomorph build: lean, thin, and wiry with long limbs",
             "a Mesomorph build: naturally athletic, broad-shouldered, and well-proportioned",
@@ -133,7 +165,6 @@ class TheiaPromptGenerator:
             "a very petite, compact, and completely average frame"
         ]
 
-        # NEW: THE "BEST DAY EVER" VIBES & EXPRESSIONS
         self.vibes = [
             "radiating absolute joy and having the best day of their life",
             "giving off a warm, magnetic, and incredibly friendly energy",
@@ -149,7 +180,6 @@ class TheiaPromptGenerator:
             "a fun, spontaneous, slightly goofy smile, clearly enjoying the moment"
         ]
 
-        # NEW: DIVERSIFIED LOCATIONS (Leisure, Outdoors, Vacations)
         self.environments = [
             "outdoors on a beautiful sunny day, standing near a sparkling lake",
             "sitting outside at a bustling, sunlit cafe patio with a drink on the table",
@@ -168,7 +198,6 @@ class TheiaPromptGenerator:
             "warm ambient indoor lighting creating a cozy and inviting atmosphere"
         ]
 
-        # NEW: DYNAMIC FRAMINGS & SELFIES (Eye Contact prioritized)
         self.framings = [
             "framed as a casual close-up Selfie, holding the phone with one arm extended, making direct eye contact with the camera",
             "framed as a fun Medium Shot Selfie, looking directly into the lens with a great angle",
@@ -203,12 +232,11 @@ class TheiaPromptGenerator:
         with open(HISTORY_FILE, 'w') as f:
             json.dump(list(self.history), f)
 
-    def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard"):
+    # UPDATED TO ACCEPT STYLE DNA
+    def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None):
         
-        # The ultimate Unique Seed: Guarantees a clean slate and unique face per name
         name_seed = int(hashlib.md5((character_name + appearance_tier).encode()).hexdigest(), 16) % 100000
 
-        # Map to the new 5-Tier System
         tier_lower = appearance_tier.lower()
         if tier_lower in ["above standard", "above average"]:
             facial_structure = random.choice(self.geo_above_average)
@@ -233,13 +261,9 @@ class TheiaPromptGenerator:
             self.history.add(sig_hash)
             self._save_history()
 
-        environment = random.choice(self.environments)
-        lighting = random.choice(self.lighting_conditions)
         expression = random.choice(self.expressions)
-        timeframe = random.choice(self.timeframes)
         framing = random.choice(self.framings)
 
-        # Standardized realistic clothing based on the photos
         camera = random.choice(self.camera_hardware_middle)
         clothing_options = [
             "a comfortable, stylish everyday t-shirt", 
@@ -250,14 +274,24 @@ class TheiaPromptGenerator:
         ]
         wealth_modifier = f"wearing {random.choice(clothing_options)}."
         
+        # DYNAMIC VISION PROMPTING LOGIC
+        if style_dna:
+            visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
+        else:
+            # Fallback if no images are in the Drive yet
+            environment = random.choice(self.environments)
+            lighting = random.choice(self.lighting_conditions)
+            timeframe = random.choice(self.timeframes)
+            visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
+
         prompt = (
             f"A highly realistic, documentary-style photograph of a totally unique, real human individual named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
             f"They have {body_type}. They have {facial_structure}. Their face features {skin_complexion}. "
             f"They are {vibe}. "
             f"The image is {framing}, captured by {camera}. "
-            f"They are showing a deeply human emotion: {expression}. SETTING: {environment}. "
-            f"LIGHTING: {lighting}. {timeframe}, {wealth_modifier}. "
+            f"{visual_aesthetic} "
+            f"They are showing a deeply human emotion: {expression}. {wealth_modifier} "
             f"This must look like a flawless, unmodified, completely authentic snapshot of a real person living their best life. Absolutely zero AI artifacts, no plastic 3D skin, no beauty filters, and no studio staging."
         )
         return prompt, genetic_signature
@@ -305,26 +339,31 @@ try:
 except:
     API_STATUS = False
 
-# UPDATED: EXTRACTION PROMPT NOW USES THE 5-TIER SYSTEM
+# UPDATED EXTRACTION PROMPT (Vision Analysis Included)
 EXTRACTION_PROMPT = """
-You are an expert script analyst. Read the following true crime/documentary script and extract all the significant, named characters.
-Do NOT extract background roles.
+You are an expert script analyst and visual director.
+1. Read the following true crime/documentary script and extract all significant characters.
+2. If an image is provided alongside this text, analyze its exact lighting, camera angle, and environment style. Write a 1-sentence 'style_dna' description. If no image is provided, leave 'style_dna' empty.
+
 For each character, determine:
 1. socioeconomic_status ("wealthy", "standard", "struggling")
 2. appearance_tier (Choose EXACTLY ONE from this list: "below average", "average", "standard", "above average", "above standard")
 3. age (estimate if not explicitly stated)
 4. details (a short 1-sentence summary of who they are in the story)
 
-You MUST return ONLY a raw JSON array of objects. Do not wrap it in markdown block quotes. Just the raw text.
+You MUST return ONLY a raw JSON object. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
-[
-    {"name": "John Doe", "age": "45", "details": "The lead detective.", "socioeconomic_status": "standard", "appearance_tier": "above average"}
-]
+{
+    "style_dna": "Soft golden hour sunlight, captured on a modern smartphone, casual outdoor park setting.",
+    "characters": [
+        {"name": "John Doe", "age": "45", "details": "The lead detective.", "socioeconomic_status": "standard", "appearance_tier": "above average"}
+    ]
+}
 SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v7.0 Modular Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v8.0 Cloud Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -351,9 +390,9 @@ if password_input == ACCESS_PASSWORD:
     st.sidebar.markdown("---")
     
     if API_STATUS:
-        st.sidebar.info("🧠 Brain: Gemini Pro (Latest)")
+        st.sidebar.info("🧠 Brain: Gemini Pro (Vision)")
         st.sidebar.info("🎨 Engine: Modular RPX")
-        st.sidebar.info("🏢 Auth: Lucalles Productions")
+        st.sidebar.info("☁️ Memory: Google Drive Sync")
 
     tab1, tab2, tab3 = st.tabs(["📝 Prompt Studio", "🎨 Image Studio", "📁 Style Bank"])
 
@@ -361,18 +400,38 @@ if password_input == ACCESS_PASSWORD:
         st.markdown("#### 🎬 Script Ingestion")
         user_script = st.text_area("Input Stream", height=150, placeholder="Paste your documentary/narrative script here...", label_visibility="collapsed")
         
+        drive_folder_id = st.secrets.get("gcp_service_account", {}).get("drive_folder_id")
+        
         if st.button("EXTRACT & BUILD PROMPTS"):
             if user_script:
-                with st.spinner("Analyzing roles and building genetic profiles via Gemini..."):
+                with st.spinner("Analyzing script and pulling Vision DNA from Style Bank..."):
                     try:
+                        style_image_bytes = None
+                        # Fetch a reference image from Google Drive if configured
+                        if drive_folder_id:
+                            images_in_drive = get_drive_images(drive_folder_id)
+                            if images_in_drive:
+                                random_file = random.choice(images_in_drive)
+                                style_image_bytes = download_drive_image(random_file['id'])
+
                         model = genai.GenerativeModel("gemini-2.5-pro")
-                        response = model.generate_content(EXTRACTION_PROMPT + user_script)
+                        
+                        contents = [EXTRACTION_PROMPT + user_script]
+                        if style_image_bytes:
+                            contents.append({"mime_type": "image/jpeg", "data": style_image_bytes})
+                            
+                        response = model.generate_content(contents)
                         raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
-                        character_data = json.loads(raw_json)
+                        parsed_data = json.loads(raw_json)
+                        
+                        style_dna = parsed_data.get("style_dna", "")
+                        character_data = parsed_data.get("characters", [])
                         
                         theia_engine = TheiaPromptGenerator()
                         
                         st.success(f"✅ Extraction Complete: Found {len(character_data)} Subjects")
+                        if style_dna:
+                            st.info(f"📷 Vision DNA Applied: *{style_dna}*")
                         st.markdown("---")
                         
                         for char in character_data:
@@ -382,7 +441,7 @@ if password_input == ACCESS_PASSWORD:
                             age = char.get("age", "Unknown")
                             details = char.get("details", "No details available.")
                             
-                            prompt, genetics = theia_engine.generate_prompt(name, status, appearance)
+                            prompt, genetics = theia_engine.generate_prompt(name, status, appearance, style_dna)
                             
                             st.markdown(f"### 👤 {name}")
                             st.caption(f"**Age:** {age} | **Role:** {details}")
@@ -504,9 +563,8 @@ if password_input == ACCESS_PASSWORD:
                 data=buf.getvalue(),
                 file_name="theia_studio_render.jpg",
                 mime="image/jpeg",
-)
+            )
 
-    # --- TAB 3: STYLE BANK ---
     with tab3:
         st.markdown("#### 📁 Cloud Style Bank (Google Drive)")
         drive_folder_id = st.secrets.get("gcp_service_account", {}).get("drive_folder_id")
