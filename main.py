@@ -7,32 +7,57 @@ import hashlib
 import os
 import requests
 import datetime
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 from PIL import Image, ImageEnhance
 from io import BytesIO
 
 # --- CONFIGURATION ---
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
 HISTORY_FILE = "theia_genetic_history.json"
-BILLING_FILE = "theia_billing.json"
+# Notice: BILLING_FILE = "theia_billing.json" has been removed because we use the database now.
 
-# --- PERSISTENT BILLING LOGIC ---
+# --- PERSISTENT BILLING LOGIC (GOOGLE SHEETS DATABASE) ---
+def get_gspread_client():
+    creds_dict = {
+        "type": st.secrets["gcp_service_account"]["type"],
+        "project_id": st.secrets["gcp_service_account"]["project_id"],
+        "private_key_id": st.secrets["gcp_service_account"]["private_key_id"],
+        "private_key": st.secrets["gcp_service_account"]["private_key"],
+        "client_email": st.secrets["gcp_service_account"]["client_email"],
+        "client_id": st.secrets["gcp_service_account"]["client_id"],
+        "auth_uri": st.secrets["gcp_service_account"]["auth_uri"],
+        "token_uri": st.secrets["gcp_service_account"]["token_uri"],
+        "auth_provider_x509_cert_url": st.secrets["gcp_service_account"]["auth_provider_x509_cert_url"],
+        "client_x509_cert_url": st.secrets["gcp_service_account"]["client_x509_cert_url"],
+        "universe_domain": "googleapis.com"
+    }
+    scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    return gspread.authorize(creds)
+
 def load_billing():
-    current_month_str = datetime.datetime.now().strftime("%Y-%m")
-    if os.path.exists(BILLING_FILE):
-        try:
-            with open(BILLING_FILE, 'r') as f:
-                data = json.load(f)
-                # If the file's month matches the real calendar month, load it.
-                if data.get("month") == current_month_str:
-                    return data
-        except:
-            pass
-    # If the file doesn't exist, or it's a NEW month, reset everything to 0.
-    return {"month": current_month_str, "credits": 0.0, "images": 0}
+    try:
+        client = get_gspread_client()
+        sheet = client.open("Theia Billing").sheet1
+        credits_val = sheet.cell(2, 2).value # Reads Cell B2
+        images_val = sheet.cell(2, 3).value  # Reads Cell C2
+        return {
+            "month": datetime.datetime.now().strftime("%B %Y"),
+            "credits": float(credits_val) if credits_val else 0.0,
+            "images": int(images_val) if images_val else 0
+        }
+    except Exception as e:
+        return {"month": "System Error", "credits": 0.0, "images": 0}
 
 def save_billing(data):
-    with open(BILLING_FILE, 'w') as f:
-        json.dump(data, f)
+    try:
+        client = get_gspread_client()
+        sheet = client.open("Theia Billing").sheet1
+        sheet.update_cell(2, 2, data["credits"]) # Writes to Cell B2
+        sheet.update_cell(2, 3, data["images"])  # Writes to Cell C2
+    except:
+        pass
 
 # --- STREAMLIT CALLBACK FUNCTION ---
 def reset_edits(subject_name):
@@ -204,15 +229,16 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
     
-    /* NEW: Hides the arrow button so the sidebar can never be closed */
-    [data-testid="collapsedControl"] {
-        display: none !important;
-    }
-
-    /* NEW: Keeps the top area clean and transparent */
-    header { visibility: hidden !important; }
-    footer { visibility: hidden !important; }
+   /* --- PRIVACY & UI PATCH --- */
+   /* Make header transparent so arrow is visible but ugly white bar is gone */
+    header { background-color: transparent !important; }
+    
+    /* Nuke the top right "Deploy" text, Github link, and Main Menu so no one sees your code/host */
     .stApp [data-testid="stToolbar"] { display: none !important; }
+    #MainMenu { display: none !important; }
+    
+    /* Hide the footer watermark */
+    footer { visibility: hidden !important; }
     
     .stApp { 
         background-color: #0b0c10; 
@@ -391,7 +417,7 @@ if password_input == ACCESS_PASSWORD:
                         # PERSISTENT UPDATE TO TRACKER
                         st.session_state.billing['credits'] += 0.40
                         st.session_state.billing['images'] += 1
-                        save_billing(st.session_state.billing) # Saves to local JSON file
+                        save_billing(st.session_state.billing)
                         update_billing_ui()
                         
                 except Exception as e:
