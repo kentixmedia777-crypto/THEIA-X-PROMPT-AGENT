@@ -437,8 +437,8 @@ if password_input == ACCESS_PASSWORD:
     st.sidebar.markdown("---")
     
     if API_STATUS:
-        st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
-        st.sidebar.info("🎨 Engine: Modular (Replicate)")
+        st.sidebar.info("🧠 Brain: Gemini Pro (Latest)")
+        st.sidebar.info("🎨 Engine: Modular RPX")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
 
     # ==========================================
