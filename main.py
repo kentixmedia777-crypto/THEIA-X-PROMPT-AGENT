@@ -230,12 +230,12 @@ class TheiaPromptGenerator:
             wealth_modifier = "wearing standard, everyday casual clothing."
 
         prompt = (
-            f"A highly realistic, candid amateur photograph of a real person named {character_name}. "
+            f"A highly realistic, casual documentary-style photograph of a person named {character_name}. "
             f"The image looks like it was {camera}. They have {bone}. Their skin features {skin}. "
-            f"They are showing a dynamic unposed expression: {expression}. "
+            f"They are showing a natural, everyday expression: {expression}. "
             f"The image is {framing}. SETTING: {environment}, {wealth_modifier}. "
-            f"LIGHTING: {lighting}. {timeframe}, completely unrelated to any future tragedy. "
-            f"It must look like a raw, unedited, spontaneous snapshot. Absolutely zero AI airbrushing, no plastic 3D skin, no beauty filters, and no studio lighting."
+            f"LIGHTING: {lighting}. {timeframe}, captured on a normal, uneventful day. "
+            f"It must look like a standard, unmodified snapshot directly from a camera. No AI airbrushing, no plastic 3D skin, no beauty filters, and no studio lighting."
         )
         return prompt, genetic_signature
 
