@@ -229,7 +229,6 @@ class TheiaPromptGenerator:
 
     def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None, gender="person"):
         
-        # GENDER LOCK ADDED TO THE SEED
         name_seed = int(hashlib.md5((character_name + appearance_tier + gender).encode()).hexdigest(), 16) % 100000
 
         tier_lower = appearance_tier.lower()
@@ -269,7 +268,6 @@ class TheiaPromptGenerator:
         ]
         wealth_modifier = f"wearing {random.choice(clothing_options)}."
         
-        # DYNAMIC VISION PROMPTING LOGIC
         if style_dna:
             visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
         else:
@@ -278,7 +276,6 @@ class TheiaPromptGenerator:
             timeframe = random.choice(self.timeframes)
             visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
 
-        # PROMPT NOW HARDCODES GENDER INSTEAD OF "PERSON" OR "INDIVIDUAL"
         prompt = (
             f"A highly realistic, documentary-style photograph of a totally unique, real {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
@@ -334,7 +331,6 @@ try:
 except:
     API_STATUS = False
 
-# GENDER REQUIREMENT ADDED TO EXTRACTION PROMPT
 EXTRACTION_PROMPT = """
 You are an expert script analyst and visual director.
 1. Read the following true crime/documentary script and extract all significant characters.
@@ -389,6 +385,8 @@ if password_input == ACCESS_PASSWORD:
         st.sidebar.info("🧠 Brain: Gemini Pro (Vision)")
         st.sidebar.info("🎨 Engine: Modular RPX")
         st.sidebar.info("☁️ Memory: ImgBB Cloud Sync")
+        # RESTORED AUTHENTICATION LINE
+        st.sidebar.info("🏢 Auth: Lucalles Productions")
 
     tab1, tab2, tab3 = st.tabs(["📝 Prompt Studio", "🎨 Image Studio", "📁 Style Bank"])
 
@@ -432,13 +430,12 @@ if password_input == ACCESS_PASSWORD:
                             status = char.get("socioeconomic_status", "standard")
                             appearance = char.get("appearance_tier", "standard")
                             age = char.get("age", "Unknown")
-                            gender = char.get("gender", "person") # GENDER EXTRACTION
+                            gender = char.get("gender", "person") 
                             details = char.get("details", "No details available.")
                             
                             prompt, genetics = theia_engine.generate_prompt(name, status, appearance, style_dna, gender)
                             
                             st.markdown(f"### 👤 {name}")
-                            # UI DISPLAY UPDATED WITH GENDER
                             st.caption(f"**Age:** {age} | **Gender:** {gender.title()} | **Role:** {details}")
                             st.caption(f"**Casting Tier:** `{appearance.upper()}` | **Locked Hash:** `{genetics}`")
                             
@@ -454,11 +451,12 @@ if password_input == ACCESS_PASSWORD:
     with tab2:
         st.markdown("#### 🖼️ Image Generation & Editing")
         
+        # REORDERED SO OPENAI IS DEFAULT
         model_choice = st.selectbox(
             "Select Generation Engine",
             [
-                "Google: Nano Banana 2 (Latest)",
                 "OpenAI GPT-Image 1.5 (Standard)", 
+                "Google: Nano Banana 2 (Latest)",
                 "Black Forest Labs: Flux.1 (Highly Photorealistic)",
                 "Stability AI: SDXL (Alternative Style)"
             ]
