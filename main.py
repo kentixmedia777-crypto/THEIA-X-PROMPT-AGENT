@@ -40,13 +40,30 @@ def load_billing():
     try:
         client = get_gspread_client()
         sheet = client.open("Theia Billing").sheet1
-        credits_val = sheet.cell(2, 2).value # Reads Cell B2
-        images_val = sheet.cell(2, 3).value  # Reads Cell C2
-        return {
-            "month": datetime.datetime.now().strftime("%B %Y"),
-            "credits": float(credits_val) if credits_val else 0.0,
-            "images": int(images_val) if images_val else 0
-        }
+        
+        # 1. Check what the real-world month is right now
+        current_month = datetime.datetime.now().strftime("%B %Y")
+        
+        # 2. Look at Cell A2 in the database to see what month is saved there
+        saved_month = sheet.cell(2, 1).value 
+        
+        # 3. IF THE MONTHS MATCH: Load the current credits
+        if saved_month == current_month:
+            credits_val = sheet.cell(2, 2).value # Reads Cell B2
+            images_val = sheet.cell(2, 3).value  # Reads Cell C2
+            return {
+                "month": current_month,
+                "credits": float(credits_val) if credits_val else 0.0,
+                "images": int(images_val) if images_val else 0
+            }
+            
+        # 4. IF IT IS A NEW MONTH: Reset everything in the database to 0!
+        else:
+            sheet.update_cell(2, 1, current_month) # Update A2 to the new month
+            sheet.update_cell(2, 2, 0.0)           # Reset B2 (Credits) to 0
+            sheet.update_cell(2, 3, 0)             # Reset C2 (Images) to 0
+            return {"month": current_month, "credits": 0.0, "images": 0}
+            
     except Exception as e:
         return {"month": "System Error", "credits": 0.0, "images": 0}
 
@@ -229,16 +246,15 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
     
-   /* --- PRIVACY & UI PATCH --- */
-   /* 1. Kill the collapse arrow so the sidebar is strictly permanent */
-    [data-testid="collapsedControl"] { display: none !important; }
+  /* --- PRIVACY & UI PATCH --- */
+   /* 1. Kill BOTH the collapse and expand arrows so the sidebar is strictly permanent */
+    [data-testid="collapsedControl"],
+    [data-testid="stSidebarCollapseButton"] { 
+        display: none !important; 
+    }
 
    /* 2. Make header transparent to hide the ugly white bar */
     header { background-color: transparent !important; }
-    
-    /* Nuke the top right "Deploy" text, Github link, and Main Menu so no one sees your code/host */
-    .stApp [data-testid="stToolbar"] { display: none !important; }
-    #MainMenu { display: none !important; }
     
     /* Hide the footer watermark */
     footer { visibility: hidden !important; }
