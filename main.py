@@ -355,7 +355,7 @@ if password_input == ACCESS_PASSWORD:
         st.sidebar.info("🎨 Engine: Modular RPX")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
 
-    tab1, tab2 = st.tabs(["📝 Prompt Studio", "🎨 Image Studio"])
+    tab1, tab2, tab3 = st.tabs(["📝 Prompt Studio", "🎨 Image Studio", "📁 Style Bank"])
 
     with tab1:
         st.markdown("#### 🎬 Script Ingestion")
