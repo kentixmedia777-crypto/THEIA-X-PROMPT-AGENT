@@ -284,7 +284,7 @@ class TheiaPromptGenerator:
             f"The image is {framing}, captured by {camera}. "
             f"{visual_aesthetic} "
             f"They are showing a deeply human emotion: {expression}. {wealth_modifier} "
-            f"This must look like a flawless, unmodified, completely authentic snapshot of a real {gender} living their best life. Absolutely zero AI artifacts, no plastic 3D skin, no beauty filters, and no studio staging."
+            f"This is a raw, unmodified, completely authentic snapshot of a real {gender} living their best life. Absolutely zero AI artifacts, no plastic 3D skin, no beauty filters, and no studio staging."
         )
         return prompt, genetic_signature
 
@@ -468,22 +468,27 @@ if password_input == ACCESS_PASSWORD:
             if manual_prompt:
                 with st.spinner(f"Rendering image using {model_choice}..."):
                     try:
+                        # FREEPIK SECRET SAUCE: Hidden prompt enhancement for raw realism
+                        realism_booster = ", extremely detailed raw photograph, 8k resolution, photorealistic, sharp focus, DSLR, natural skin texture, unretouched"
+                        optimized_prompt = manual_prompt + realism_booster
+
                         if "Nano Banana 2" in model_choice:
                             api_endpoint = "google/nano-banana-2" 
                             api_input = {
-                                "prompt": manual_prompt,
-                                "negative_prompt": "plastic, CGI, 3D, overly smooth, airbrushed, glossy skin, artificial, uncanny valley, deformed, cartoon, illustration, oversaturated, beauty filter",
-                                "output_quality": 100
+                                "prompt": optimized_prompt,
+                                "negative_prompt": "plastic, CGI, 3D, overly smooth, airbrushed, glossy skin, artificial, uncanny valley, deformed, cartoon, illustration, oversaturated, beauty filter, flawless, porcelain",
+                                "output_quality": 100,
+                                "num_inference_steps": 50 # Forces the AI to render with much higher detail
                             } 
                         elif "GPT-Image 1.5" in model_choice:
                             api_endpoint = "openai/gpt-image-1.5"
-                            api_input = {"prompt": manual_prompt, "size": "1024x1024", "quality": "high", "style": "natural"}
+                            api_input = {"prompt": optimized_prompt, "size": "1024x1024", "quality": "high", "style": "natural"}
                         elif "Flux.1" in model_choice:
                             api_endpoint = "black-forest-labs/flux-schnell"
-                            api_input = {"prompt": manual_prompt}
+                            api_input = {"prompt": optimized_prompt}
                         elif "SDXL" in model_choice:
                             api_endpoint = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
-                            api_input = {"prompt": manual_prompt}
+                            api_input = {"prompt": optimized_prompt}
                         
                         output = replicate.run(api_endpoint, input=api_input)
                         
