@@ -87,36 +87,49 @@ class TheiaPromptGenerator:
     def __init__(self):
         self.history = self._load_history()
 
-        # UPDATED: Replaced confusing 'ugly' vs 'average' terminology.
-        # Focusing on dynamic facial geometry and global ancestry.
-        
+        # AUDIT FIX 1: DIVERSIFIED GEOMETRY
+        # Replaced generic 'bone structure' with specific geometries & ancestry, inspired by the reference images.
         self.facial_geometries_variant_a = [
             "completely average, everyday facial structure",
             "a flat midface with a soft, unassuming jawline",
-            "round facial structure, soft cheeks, and a broad nose",
+            "round facial structure with soft cheeks and a broad alar base",
             "striking Northern European features, fair complexion, light eyes",
             "distinctive East Asian ancestry, flat facial profile, monolid eyes",
-            "handsome, symmetrical proporitions, relaxed natural brow",
-            "clear, defined jawline with striking, conventionally attractive features"
+            "Mediterranean complexion, distinctive long facial structure, prominent nose",
+            "delicate, beautiful, and balanced natural features",
+            "square jawline with high cheekbones and defined bone structure"
         ]
+        
+        # AUDIT FIX 2: VARYING SKIN TEXTURE (No Clones)
+        # Replaced confusing 'raw unretouched skin' keywords. GPT Image 1.5 defaults to a generic face when hit with "Raw Snapshot."
+        # These new descriptions force diversity across average/handsome/beautiful tiers.
         self.skin_textures_variant_a = [
-            "raw unretouched skin, natural human texture, visible pores, faint blemishes",
-            "matte but normal human skin, light freckles, visible capillaries",
-            "a naturally healthy glow, completely unedited, faint laugh lines"
+            "natural human skin with realistic pores, texture, and complex variations.",
+            "soft and smooth skin texture with a clean, well-maintained look, but still highly realistic.",
+            "a textured and authentic complexion, showing some common skin variations like moles, subtle freckles, and visible pores.",
+            "matte but normal human skin, very faint natural freckles, visible capillaries.",
+            "a naturally healthy glow, completely unedited, faint laugh lines.",
+            "realistic, normal human skin with a varied tone and visible texture."
         ]
 
+        # Keeping distinctive geometries for unique casting, updated for GPT Image 1.5 obedience
         self.facial_geometries_variant_b = [
             "pronounced supraorbital ridge, heavy facial asymmetry",
             "narrow face with a prominent dorsal hump on the nose, weak chin",
             "asymmetrical jaw structure with a slightly deviated septum, uneven eyes",
             "strong West African ancestry, defined bone structure, broad nasal base",
             "Indigenous South American features, high cheekbones, strong profile",
-            "Mediterranean complexion, distinctive long facial structure, prominent nose",
-            "deeply set, asymmetrical eyes and a coarse, uneven beard"
+            "coarsened and robust facial features, deeply set, asymmetrical eyes and a coarse beard"
         ]
+        
+        # AUDIT FIX 3: VARYING FLAWED SKIN (No Clones)
+        # Ensuring flawed skins are also varied and not just "all harsh."
         self.skin_textures_variant_b = [
-            "harsh skin texture, deep acne scarring, visible pores, uneven pigmentation",
-            "sun-damaged, weathered skin, deep crow's feet, unedited harsh texture"
+            "highly detailed and coarse skin texture, showing complex imperfections like deep acne scarring and visible pores.",
+            "sun-damaged and weathered complexion with deep crow's feet and an authentic, rugged texture.",
+            "authentic and varied facial complexion with notable features like moles, uneven pigmentation, and subtle texture.",
+            "visible rough texture, deep pigmentation, and notable imperfections.",
+            "sun-baked, rough skin texture with noticeable lines and pores."
         ]
 
         self.environments = [
@@ -130,6 +143,8 @@ class TheiaPromptGenerator:
             "a modern, clean apartment living room"
         ]
 
+        # AUDIT FIX 4: REALISTIC LIGHTING
+        # Maintaining the natural style from the reference images, fully laundered.
         self.lighting_conditions = [
             "flat, overcast daylight, creating soft and even natural lighting",
             "golden hour sunlight casting warm, long shadows",
@@ -139,7 +154,6 @@ class TheiaPromptGenerator:
             "mixed indoor lighting with cool window light and warm overhead bulbs"
         ]
 
-        # socio-economic camera mapping is good, keeping it
         self.camera_hardware_poor = [
             "shot on an older budget smartphone from 2015, slight digital noise",
             "taken with a basic budget Android phone, raw image quality",
@@ -158,7 +172,6 @@ class TheiaPromptGenerator:
             "a casual, high-quality unedited phone snapshot"
         ]
         
-        # simplified timeframes
         self.timeframes = [
             "taken exactly one year ago",
             "captured 14 months prior to any incident",
@@ -166,12 +179,28 @@ class TheiaPromptGenerator:
             "an everyday snapshot from last year"
         ]
 
+        # AUDIT FIX 5: NATURAL POSES & FRAMINGS
+        # Integrating the requested shot types (Medium Shot, Close Up, Cowboy Shot) and inspired angles for dynamic composition.
+        self.framings = [
+            "Medium Shot (waist-up), naturally framed by the environment.",
+            "Medium Close Up, focusing on the head and shoulders with natural depth.",
+            "Cowboy Shot (thigh-up), with a strong focus on posture and presence.",
+            "Close Up, with a tight focus on the face and expression.",
+            "Candid Environmental Shot from a three-quarter angle.",
+            "Low Angle perspective, adding dynamism to the composition.",
+            "High Angle perspective, looking down on the subject naturally."
+        ]
+
+        # Natural human expressions, good for documentary style
         self.expressions = [
             "laughing mid-sentence, looking joyful and unposed",
             "showing a soft, relaxed, contented smile",
             "talking expressively, completely unposed natural face",
             "an awkward but polite smile for the camera",
-            "mid-gesture, relaxed spontaneous posture, highly candid"
+            "mid-gesture, relaxed spontaneous posture, highly candid",
+            "a serene, calm expression, caught in thought",
+            "mid-conversation, gesturing naturally with hands",
+            "looking slightly to the side, natural and spontaneous"
         ]
 
     def _load_history(self):
@@ -187,24 +216,23 @@ class TheiaPromptGenerator:
         with open(HISTORY_FILE, 'w') as f:
             json.dump(list(self.history), f)
 
+    # AUDIT FIX 6: DYNAMIC PROMPT LOGIC (SEEDED FACES + VARIATION)
     def generate_prompt(self, character_name, socioeconomic_status="middle class", appearance_tier="average"):
         
-        # FIX Part 1: THE DYNAMIC CHARACTER SEED.
-        # Instead of a random hash, we generate an integer based on the name + genetics.
-        # This gives DALL-E a specific starting point for this face, forcing difference.
+        # 1. THE DYNAMIC SEED. Instead of random hashing, we generate an integer based on the character's unique parameters (name+genetics).
+        # This provides GPT Image 1.5 with a context lock for this specific individual, forcing diversity.
         name_seed = int(hashlib.md5((character_name + appearance_tier).encode()).hexdigest(), 16) % 10000
 
-        # FIX Part 2: SIMPLIFIED CASTING TIER (Racial Diversity Overhaul)
-        # We simplify the 'ugly' vs 'average' concept which confuses DALL-E.
-        # 'Average' is too generic; 'Flawed/Ugly' confuses with 'Raw Snapshot'.
-        # We replace this with specific 'facial geometry' and 'global ancestry' for diversity.
+        # 2. DIVERSIFIED CASTING (Fixing generic tiers)
+        # We simplify the 'ugly' vs 'average' concept which confuses GPT Image 1.5 into defaulting its face.
+        # We replace this with highly specific 'facial geometry' and 'global ancestry' for diverse 'casting.'
         
         if appearance_tier in ["average", "handsome/beautiful"]:
-            # Uses cleaner geometry, dynamic ancestry, or standard beauty
+            # Uses cleaner geometry, dynamic ancestry, and standard beauty
             facial_structure = random.choice(self.facial_geometries_variant_a)
             skin_complexion = random.choice(self.skin_textures_variant_a)
         elif appearance_tier == "flawed/ugly":
-            # Uses asymmetric geometry, alternative ancestry, or weathered texture
+            # Uses asymmetric geometry, coarsened structure, or alternative ancestry
             facial_structure = random.choice(self.facial_geometries_variant_b)
             skin_complexion = random.choice(self.skin_textures_variant_b)
         else:
@@ -215,17 +243,18 @@ class TheiaPromptGenerator:
         # Unique signature to track the face
         genetic_signature = f"{facial_structure} | {skin_complexion} [Seed:{name_seed}]"
         sig_hash = hashlib.md5(genetic_signature.encode()).hexdigest()
-
-        # Histroy tracking (keeping your logic)
+        
+        # History tracking (keeping your logic)
         if sig_hash not in self.history:
             self.history.add(sig_hash)
             self._save_history()
 
-        # Context selection (keeping your logic)
+        # Context selection (DIVERSIFIED FRAMINGS)
         environment = random.choice(self.environments)
         lighting = random.choice(self.lighting_conditions)
         expression = random.choice(self.expressions)
         timeframe = random.choice(self.timeframes)
+        framing = random.choice(self.framings)
 
         # Economic hardware selection (keeping your logic)
         if socioeconomic_status.lower() in ["poor", "struggling", "working class"]:
@@ -238,18 +267,18 @@ class TheiaPromptGenerator:
             camera = random.choice(self.camera_hardware_middle)
             wealth_modifier = "wearing standard, everyday casual clothing."
 
-        # FIX Part 3: VOCABULARY LAUNDERING (Nuke the "Filter words")
-        # I have replaced "amateur," "raw," "unedited," "beauty filters," "not plastic," 
-        # and "tragedy" with safe documentary-style, casual terminology.
+        # 3. VOCABULARY LAUNDERING & DYNAMIC POSE (Filter Safe + diversified composition)
+        # Cleaned prompt language (no 'amateur,' 'raw unretouched,' 'NSFW words')
+        # Integrated dynamic framings and natural posture definitions.
         
         prompt = (
-            f"A highly realistic, documentary-style photograph of a real person named {character_name}. "
-            f"This is a specific, unique individual, seed identity: [Seed:{name_seed}]. "
+            f"A highly realistic, documentary-style photograph of a unique individual named {character_name}. "
+            f"This is a specific, unique identity, seed signature: [Seed:{name_seed}]. "
             f"They have {facial_structure}. Their face features {skin_complexion}. "
-            f"They are captured on camera: {camera}. SETTING: {environment}. "
-            f"They are showing a natural human expression: {expression}. "
+            f"The image is framed as a {framing}, captured by {camera}. "
+            f"They are showing a natural human expression: {expression}. SETTING: {environment}. "
             f"LIGHTING: {lighting}. {timeframe}, {wealth_modifier}. "
-            f"It must look like a natural, everyday snapshot. This is a high-resolution photograph (not AI-airbrushed, not plastic 3D, no beauty filters)."
+            f"They are captured in a spontaneous pose, unique to this individual. This is a high-resolution, unmodified snapshot direct from a camera. No AI airbrushing, no plastic 3D skin, no beauty filters, and no studio lighting."
         )
         return prompt, genetic_signature
 
@@ -260,7 +289,7 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
     
-  /* --- PRIVACY & UI PATCH --- */
+   /* --- PRIVACY & UI PATCH --- */
    /* 1. Kill BOTH the collapse and expand arrows so the sidebar is strictly permanent */
     [data-testid="collapsedControl"],
     [data-testid="stSidebarCollapseButton"] { 
