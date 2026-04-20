@@ -230,7 +230,10 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
     
    /* --- PRIVACY & UI PATCH --- */
-   /* Make header transparent so arrow is visible but ugly white bar is gone */
+   /* 1. Kill the collapse arrow so the sidebar is strictly permanent */
+    [data-testid="collapsedControl"] { display: none !important; }
+
+   /* 2. Make header transparent to hide the ugly white bar */
     header { background-color: transparent !important; }
     
     /* Nuke the top right "Deploy" text, Github link, and Main Menu so no one sees your code/host */
