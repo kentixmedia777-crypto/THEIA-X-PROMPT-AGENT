@@ -504,8 +504,9 @@ if password_input == ACCESS_PASSWORD:
                 data=buf.getvalue(),
                 file_name="theia_studio_render.jpg",
                 mime="image/jpeg",
-            )
-# --- TAB 3: STYLE BANK ---
+)
+
+    # --- TAB 3: STYLE BANK ---
     with tab3:
         st.markdown("#### 📁 Cloud Style Bank (Google Drive)")
         drive_folder_id = st.secrets.get("gcp_service_account", {}).get("drive_folder_id")
@@ -539,4 +540,3 @@ if password_input == ACCESS_PASSWORD:
                                     st.image(img['thumbnailLink'], caption=img['name'], use_container_width=True)
                     else:
                         st.info("Your Style Bank is currently empty.")
-
