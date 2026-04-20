@@ -6,12 +6,33 @@ import random
 import hashlib
 import os
 import requests
+import datetime
 from PIL import Image, ImageEnhance
 from io import BytesIO
 
 # --- CONFIGURATION ---
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
 HISTORY_FILE = "theia_genetic_history.json"
+BILLING_FILE = "theia_billing.json"
+
+# --- PERSISTENT BILLING LOGIC ---
+def load_billing():
+    current_month_str = datetime.datetime.now().strftime("%Y-%m")
+    if os.path.exists(BILLING_FILE):
+        try:
+            with open(BILLING_FILE, 'r') as f:
+                data = json.load(f)
+                # If the file's month matches the real calendar month, load it.
+                if data.get("month") == current_month_str:
+                    return data
+        except:
+            pass
+    # If the file doesn't exist, or it's a NEW month, reset everything to 0.
+    return {"month": current_month_str, "credits": 0.0, "images": 0}
+
+def save_billing(data):
+    with open(BILLING_FILE, 'w') as f:
+        json.dump(data, f)
 
 # --- STREAMLIT CALLBACK FUNCTION ---
 def reset_edits(subject_name):
@@ -24,7 +45,6 @@ class TheiaPromptGenerator:
     def __init__(self):
         self.history = self._load_history()
 
-        # Tier 1: Ordinary / Average
         self.bone_average = [
             "a completely ordinary, everyday facial structure",
             "a flat midface with a soft, unassuming jawline",
@@ -35,7 +55,6 @@ class TheiaPromptGenerator:
             "matte but normal human skin, very faint natural freckles, visible capillaries"
         ]
 
-        # Tier 2: Flawed / Rugged / Ugly
         self.bone_flawed = [
             "a prominent supraorbital ridge with heavy facial asymmetry",
             "a narrow face with a pronounced dorsal hump on the nose and a weak chin",
@@ -46,7 +65,6 @@ class TheiaPromptGenerator:
             "sun-damaged, weathered skin with deep crow's feet and unedited harsh blemishes"
         ]
 
-        # Tier 3: Handsome / Beautiful / Striking
         self.bone_attractive = [
             "a strong, defined jawline with striking, conventionally attractive features",
             "handsome, symmetrical proportions with a relaxed natural brow",
@@ -77,7 +95,6 @@ class TheiaPromptGenerator:
             "mixed indoor lighting with cool window light and warm overhead bulbs"
         ]
 
-        # Dynamic Camera Quality based on status
         self.camera_hardware_poor = [
             "shot on an older budget smartphone from 2015, slight digital noise, unedited",
             "taken with a basic budget Android phone, raw image quality, slight motion blur",
@@ -136,7 +153,6 @@ class TheiaPromptGenerator:
     def generate_prompt(self, character_name, socioeconomic_status="middle class", appearance_tier="average"):
         is_unique = False
         while not is_unique:
-            # Smart Appearance Selection
             if appearance_tier == "handsome/beautiful":
                 bone = random.choice(self.bone_attractive)
                 skin = random.choice(self.skin_attractive)
@@ -161,7 +177,6 @@ class TheiaPromptGenerator:
         expression = random.choice(self.expressions)
         timeframe = random.choice(self.timeframes)
 
-        # Smart Camera Selection
         if socioeconomic_status.lower() in ["poor", "struggling", "working class"]:
             camera = random.choice(self.camera_hardware_poor)
             wealth_modifier = "wearing worn, slightly faded everyday clothing."
@@ -172,7 +187,6 @@ class TheiaPromptGenerator:
             camera = random.choice(self.camera_hardware_middle)
             wealth_modifier = "wearing standard, everyday casual clothing."
 
-        # Final Assembly
         prompt = (
             f"A highly realistic, candid amateur photograph of a real person named {character_name}. "
             f"The image looks like it was {camera}. They have {bone}. Their skin features {skin}. "
@@ -189,6 +203,13 @@ st.set_page_config(page_title="THEIA PRO", page_icon="👁️", layout="wide", i
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
+    
+    /* UI STEALTH PATCH */
+    header {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    .stApp [data-testid="stToolbar"] {display: none !important;}
+    #MainMenu {visibility: hidden !important;}
+    
     .stApp { 
         background-color: #0b0c10; 
         background-image: radial-gradient(circle at 15% 50%, rgba(88, 101, 242, 0.05), transparent 25%), 
@@ -268,7 +289,6 @@ try:
 except:
     API_STATUS = False
 
-# --- SYSTEM EXTRACTION PROMPT (UPGRADED) ---
 EXTRACTION_PROMPT = """
 You are an expert script analyst. Read the following true crime/documentary script and extract all the significant, named characters.
 Do NOT extract background roles (e.g., "Paramedic", "Police Officer 1").
@@ -284,12 +304,31 @@ SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v5.7 Enterprise Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v6.0 Enterprise Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
 if password_input == ACCESS_PASSWORD:
     st.sidebar.success("🟢 SYSTEM ONLINE")
+    st.sidebar.markdown("---")
+    
+    # --- MONTHLY BILLING TRACKER UI ---
+    if 'billing' not in st.session_state:
+        st.session_state.billing = load_billing()
+        
+    billing_display = st.sidebar.empty()
+    
+    def update_billing_ui():
+        month_name = datetime.datetime.now().strftime("%B %Y")
+        billing_display.markdown(f"""
+            <div style='background: rgba(43,45,49,0.5); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;'>
+                <p style='color: #949ba4; margin: 0; font-family: Inter; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;'>{month_name} USAGE</p>
+                <h2 style='color: #43b581; margin: 5px 0 5px 0; font-weight: 900; font-family: Inter;'>💳 Credit ${st.session_state.billing['credits']:.2f}</h2>
+                <p style='color: #dbdee1; margin: 0; font-family: Inter; font-size: 0.9rem;'>🖼️ {st.session_state.billing['images']} Images Generated</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    update_billing_ui()
     st.sidebar.markdown("---")
     
     if API_STATUS:
@@ -344,6 +383,13 @@ if password_input == ACCESS_PASSWORD:
                             "appearance_tier": appearance,
                             "image_bytes": img_bytes
                         })
+                        
+                        # PERSISTENT UPDATE TO TRACKER
+                        st.session_state.billing['credits'] += 0.40
+                        st.session_state.billing['images'] += 1
+                        save_billing(st.session_state.billing) # Saves to local JSON file
+                        update_billing_ui()
+                        
                 except Exception as e:
                     st.error("❌ System Processing Error")
                     st.code(f"Error Details: {e}")
