@@ -388,22 +388,28 @@ try:
 except:
     API_STATUS = False
 
+# ==========================================
+# MODIFICATION 1: EXTRACTION PROMPT
+# ==========================================
 EXTRACTION_PROMPT = """
 You are an expert script analyst. Read the following true crime/documentary script and extract all the significant, named characters.
 Do NOT extract background roles (e.g., "Paramedic", "Police Officer 1").
-For each character, determine their socioeconomic status based on context clues (e.g., "wealthy", "middle class", "struggling").
-Also determine their 'appearance_tier' based on their role or vibe in the story (choose exactly ONE: "average", "flawed/ugly", "handsome/beautiful"). If their appearance isn't obvious from the script, default strictly to "average".
+For each character, determine:
+1. socioeconomic_status ("wealthy", "middle class", "struggling")
+2. appearance_tier ("average", "flawed/ugly", "handsome/beautiful")
+3. age (estimate if not explicitly stated)
+4. details (a short 1-sentence summary of who they are in the story)
 
 You MUST return ONLY a raw JSON array of objects. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
 [
-    {"name": "John Doe", "socioeconomic_status": "middle class", "appearance_tier": "average"}
+    {"name": "John Doe", "age": "45", "details": "The lead detective on the case.", "socioeconomic_status": "middle class", "appearance_tier": "average"}
 ]
 SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v6.0 Enterprise Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v7.0 Modular Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -432,56 +438,100 @@ if password_input == ACCESS_PASSWORD:
     
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini 2.5 Pro")
-        st.sidebar.info("🎨 Engine: OpenAI GPT-Image 1.5")
+        st.sidebar.info("🎨 Engine: Modular (Replicate)")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
-        st.sidebar.info("🛠️ Post-Processing: Active")
-    
-    if 'generated_subjects' not in st.session_state:
-        st.session_state.generated_subjects = []
 
-    st.markdown("#### 🎬 Script Ingestion")
-    user_script = st.text_area("Input Stream", height=150, placeholder="Paste your documentary/narrative script here...", label_visibility="collapsed")
-    
-    if st.button("INITIALIZE THEIA ENGINE"):
-        if user_script:
-            st.session_state.generated_subjects = [] 
-            with st.spinner("Analyzing roles and casting authentic appearances via OpenAI..."):
-                try:
-                    model = genai.GenerativeModel("gemini-2.5-pro")
-                    response = model.generate_content(EXTRACTION_PROMPT + user_script)
-                    raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
-                    character_data = json.loads(raw_json)
-                    
-                    theia_engine = TheiaPromptGenerator()
-                    
-                    for char in character_data:
-                        name = char.get("name", "Unknown Subject")
-                        status = char.get("socioeconomic_status", "middle class")
-                        appearance = char.get("appearance_tier", "average")
+    # ==========================================
+    # MODIFICATION 2: UI TABS REPLACEMENT
+    # ==========================================
+    tab1, tab2 = st.tabs(["📝 Prompt Studio (Free)", "🎨 Image Studio (Paid)"])
+
+    # --- TAB 1: PROMPT STUDIO ---
+    with tab1:
+        st.markdown("#### 🎬 Script Ingestion")
+        user_script = st.text_area("Input Stream", height=150, placeholder="Paste your documentary/narrative script here...", label_visibility="collapsed")
+        
+        if st.button("EXTRACT & BUILD PROMPTS"):
+            if user_script:
+                with st.spinner("Analyzing roles and building genetic profiles via Gemini..."):
+                    try:
+                        model = genai.GenerativeModel("gemini-2.5-pro")
+                        response = model.generate_content(EXTRACTION_PROMPT + user_script)
+                        raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
+                        character_data = json.loads(raw_json)
                         
-                        prompt, genetics = theia_engine.generate_prompt(name, status, appearance)
+                        theia_engine = TheiaPromptGenerator()
                         
-                        output = replicate.run(
-                            "openai/gpt-image-1.5",
-                            input={
-                                "prompt": prompt,
-                                "size": "1024x1024",
-                                "quality": "high", 
-                                "style": "natural"
-                            }
-                        )
+                        st.success(f"✅ Extraction Complete: Found {len(character_data)} Subjects")
+                        st.markdown("---")
                         
-                        image_url = str(output[0])
+                        for char in character_data:
+                            name = char.get("name", "Unknown Subject")
+                            status = char.get("socioeconomic_status", "middle class")
+                            appearance = char.get("appearance_tier", "average")
+                            age = char.get("age", "Unknown")
+                            details = char.get("details", "No details available.")
+                            
+                            prompt, genetics = theia_engine.generate_prompt(name, status, appearance)
+                            
+                            st.markdown(f"### 👤 {name}")
+                            st.caption(f"**Age:** {age} | **Role:** {details}")
+                            st.caption(f"**Casting Tier:** `{appearance.upper()}` | **Locked Hash:** `{genetics}`")
+                            
+                            # Streamlit naturally adds a copy button to st.code blocks
+                            st.code(prompt, language="markdown")
+                            st.markdown("<br>", unsafe_allow_html=True)
+                            
+                    except Exception as e:
+                        st.error("❌ System Processing Error")
+                        st.code(f"Error Details: {e}")
+            else:
+                st.warning("⚠️ Input Buffer Empty. Please paste a script.")
+
+    # --- TAB 2: IMAGE STUDIO ---
+    with tab2:
+        st.markdown("#### 🖼️ Image Generation & Editing")
+        
+        model_choice = st.selectbox(
+            "Select Generation Engine",
+            [
+                "OpenAI GPT-Image 1.5 (Standard)", 
+                "Stability AI: SDXL (Alternative Style)", 
+                "Black Forest Labs: Flux.1 (Highly Photorealistic)"
+            ]
+        )
+        
+        manual_prompt = st.text_area("Paste Character Prompt Here", height=150)
+        
+        if st.button("GENERATE IMAGE"):
+            if manual_prompt:
+                with st.spinner(f"Rendering image using {model_choice}..."):
+                    try:
+                        # Safely route the API to the selected model and handle differing input requirements
+                        if "GPT-Image 1.5" in model_choice:
+                            api_endpoint = "openai/gpt-image-1.5"
+                            api_input = {"prompt": manual_prompt, "size": "1024x1024", "quality": "high", "style": "natural"}
+                        elif "SDXL" in model_choice:
+                            api_endpoint = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
+                            api_input = {"prompt": manual_prompt}
+                        elif "Flux.1" in model_choice:
+                            api_endpoint = "black-forest-labs/flux-schnell"
+                            api_input = {"prompt": manual_prompt}
+                        else:
+                            api_endpoint = "openai/gpt-image-1.5"
+                            api_input = {"prompt": manual_prompt}
+                        
+                        output = replicate.run(api_endpoint, input=api_input)
+                        
+                        if isinstance(output, list):
+                            image_url = str(output[0])
+                        else:
+                            image_url = str(output)
+                            
                         img_response = requests.get(image_url)
                         img_bytes = img_response.content
                         
-                        st.session_state.generated_subjects.append({
-                            "name": name,
-                            "prompt": prompt,
-                            "hash": genetics,
-                            "appearance_tier": appearance,
-                            "image_bytes": img_bytes
-                        })
+                        st.session_state["current_rendered_image"] = img_bytes
                         
                         # PERSISTENT UPDATE TO TRACKER
                         st.session_state.billing['credits'] += 0.40
@@ -489,40 +539,37 @@ if password_input == ACCESS_PASSWORD:
                         save_billing(st.session_state.billing)
                         update_billing_ui()
                         
-                except Exception as e:
-                    st.error("❌ System Processing Error")
-                    st.code(f"Error Details: {e}")
-        else:
-            st.warning("⚠️ Input Buffer Empty. Please paste a script.")
-
-    if st.session_state.generated_subjects:
-        st.markdown("---")
-        st.success(f"✅ Extraction & Casting Complete: Found {len(st.session_state.generated_subjects)} Subjects")
-        
-        for subject in st.session_state.generated_subjects:
-            name = subject["name"]
-            st.markdown(f"### 📸 Subject: {name}")
-            st.caption(f"**Casting Tier:** `{subject['appearance_tier'].upper()}` | **Locked Hash:** `{subject['hash']}`")
-            
-            st.code(subject["prompt"], language="markdown")
-            
+                    except Exception as e:
+                        st.error("❌ Rendering Error")
+                        st.code(f"Error Details: {e}")
+            else:
+                st.warning("⚠️ Please paste a prompt first.")
+                
+        # --- POST PROCESSING SECTION ---
+        if "current_rendered_image" in st.session_state:
+            st.markdown("---")
             st.markdown("##### 🎛️ Post-Processing Adjustments")
             
-            if f"b_{name}" not in st.session_state: st.session_state[f"b_{name}"] = 1.0
-            if f"c_{name}" not in st.session_state: st.session_state[f"c_{name}"] = 1.0
-            if f"s_{name}" not in st.session_state: st.session_state[f"s_{name}"] = 1.0
+            if "b_manual" not in st.session_state: st.session_state["b_manual"] = 1.0
+            if "c_manual" not in st.session_state: st.session_state["c_manual"] = 1.0
+            if "s_manual" not in st.session_state: st.session_state["s_manual"] = 1.0
             
+            def reset_manual_edits():
+                st.session_state["b_manual"] = 1.0
+                st.session_state["c_manual"] = 1.0
+                st.session_state["s_manual"] = 1.0
+                
             col1, col2, col3 = st.columns(3)
             with col1:
-                brightness = st.slider("Brightness", 0.5, 1.5, key=f"b_{name}")
+                brightness = st.slider("Brightness", 0.5, 1.5, key="b_manual")
             with col2:
-                contrast = st.slider("Contrast", 0.5, 1.5, key=f"c_{name}")
+                contrast = st.slider("Contrast", 0.5, 1.5, key="c_manual")
             with col3:
-                sharpness = st.slider("Sharpness", 0.0, 2.5, key=f"s_{name}")
+                sharpness = st.slider("Sharpness", 0.0, 2.5, key="s_manual")
             
-            st.button("↩️ Reset Edits (Undo)", key=f"reset_{name}", on_click=reset_edits, args=(name,))
+            st.button("↩️ Reset Edits (Undo)", on_click=reset_manual_edits)
             
-            base_img = Image.open(BytesIO(subject["image_bytes"]))
+            base_img = Image.open(BytesIO(st.session_state["current_rendered_image"]))
             base_img = ImageEnhance.Brightness(base_img).enhance(brightness)
             base_img = ImageEnhance.Contrast(base_img).enhance(contrast)
             final_img = ImageEnhance.Sharpness(base_img).enhance(sharpness)
@@ -532,10 +579,8 @@ if password_input == ACCESS_PASSWORD:
             buf = BytesIO()
             final_img.save(buf, format="JPEG", quality=95)
             st.download_button(
-                label=f"⬇️ Download {name} (Edited)",
+                label="⬇️ Download Edited Render",
                 data=buf.getvalue(),
-                file_name=f"{name.replace(' ', '_')}_theia_render.jpg",
+                file_name="theia_manual_render.jpg",
                 mime="image/jpeg",
-                key=f"dl_{name}"
             )
-            st.markdown("<br><br>", unsafe_allow_html=True)
