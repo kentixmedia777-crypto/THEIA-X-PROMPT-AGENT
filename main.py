@@ -227,9 +227,10 @@ class TheiaPromptGenerator:
         with open(HISTORY_FILE, 'w') as f:
             json.dump(list(self.history), f)
 
-    def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None):
+    def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None, gender="person"):
         
-        name_seed = int(hashlib.md5((character_name + appearance_tier).encode()).hexdigest(), 16) % 100000
+        # GENDER LOCK ADDED TO THE SEED
+        name_seed = int(hashlib.md5((character_name + appearance_tier + gender).encode()).hexdigest(), 16) % 100000
 
         tier_lower = appearance_tier.lower()
         if tier_lower in ["above standard", "above average"]:
@@ -277,15 +278,16 @@ class TheiaPromptGenerator:
             timeframe = random.choice(self.timeframes)
             visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
 
+        # PROMPT NOW HARDCODES GENDER INSTEAD OF "PERSON" OR "INDIVIDUAL"
         prompt = (
-            f"A highly realistic, documentary-style photograph of a totally unique, real human individual named {character_name}. "
+            f"A highly realistic, documentary-style photograph of a totally unique, real {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
-            f"They have {body_type}. They have {facial_structure}. Their face features {skin_complexion}. "
+            f"This {gender} has {body_type}. They have {facial_structure}. Their face features {skin_complexion}. "
             f"They are {vibe}. "
             f"The image is {framing}, captured by {camera}. "
             f"{visual_aesthetic} "
             f"They are showing a deeply human emotion: {expression}. {wealth_modifier} "
-            f"This must look like a flawless, unmodified, completely authentic snapshot of a real person living their best life. Absolutely zero AI artifacts, no plastic 3D skin, no beauty filters, and no studio staging."
+            f"This must look like a flawless, unmodified, completely authentic snapshot of a real {gender} living their best life. Absolutely zero AI artifacts, no plastic 3D skin, no beauty filters, and no studio staging."
         )
         return prompt, genetic_signature
 
@@ -332,6 +334,7 @@ try:
 except:
     API_STATUS = False
 
+# GENDER REQUIREMENT ADDED TO EXTRACTION PROMPT
 EXTRACTION_PROMPT = """
 You are an expert script analyst and visual director.
 1. Read the following true crime/documentary script and extract all significant characters.
@@ -341,14 +344,15 @@ For each character, determine:
 1. socioeconomic_status ("wealthy", "standard", "struggling")
 2. appearance_tier (Choose EXACTLY ONE from this list: "below average", "average", "standard", "above average", "above standard")
 3. age (estimate if not explicitly stated)
-4. details (a short 1-sentence summary of who they are in the story)
+4. gender ("man", "woman", "boy", "girl", or "non-binary")
+5. details (a short 1-sentence summary of who they are in the story)
 
 You MUST return ONLY a raw JSON object. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
 {
     "style_dna": "Soft golden hour sunlight, captured on a modern smartphone, casual outdoor park setting.",
     "characters": [
-        {"name": "John Doe", "age": "45", "details": "The lead detective.", "socioeconomic_status": "standard", "appearance_tier": "above average"}
+        {"name": "John Doe", "age": "45", "gender": "man", "details": "The lead detective.", "socioeconomic_status": "standard", "appearance_tier": "above average"}
     ]
 }
 SCRIPT TO ANALYZE:
@@ -428,12 +432,14 @@ if password_input == ACCESS_PASSWORD:
                             status = char.get("socioeconomic_status", "standard")
                             appearance = char.get("appearance_tier", "standard")
                             age = char.get("age", "Unknown")
+                            gender = char.get("gender", "person") # GENDER EXTRACTION
                             details = char.get("details", "No details available.")
                             
-                            prompt, genetics = theia_engine.generate_prompt(name, status, appearance, style_dna)
+                            prompt, genetics = theia_engine.generate_prompt(name, status, appearance, style_dna, gender)
                             
                             st.markdown(f"### 👤 {name}")
-                            st.caption(f"**Age:** {age} | **Role:** {details}")
+                            # UI DISPLAY UPDATED WITH GENDER
+                            st.caption(f"**Age:** {age} | **Gender:** {gender.title()} | **Role:** {details}")
                             st.caption(f"**Casting Tier:** `{appearance.upper()}` | **Locked Hash:** `{genetics}`")
                             
                             st.code(prompt, language="markdown")
