@@ -204,11 +204,15 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap');
     
-   /* UI STEALTH PATCH - FIXED */
-    header {background-color: transparent !important;}
-    footer {visibility: hidden !important;}
-    .stApp [data-testid="stToolbar"] {display: none !important;}
-    #MainMenu {visibility: hidden !important;}
+    /* NEW: Hides the arrow button so the sidebar can never be closed */
+    [data-testid="collapsedControl"] {
+        display: none !important;
+    }
+
+    /* NEW: Keeps the top area clean and transparent */
+    header { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+    .stApp [data-testid="stToolbar"] { display: none !important; }
     
     .stApp { 
         background-color: #0b0c10; 
