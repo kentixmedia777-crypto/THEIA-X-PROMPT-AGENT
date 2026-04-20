@@ -505,3 +505,38 @@ if password_input == ACCESS_PASSWORD:
                 file_name="theia_studio_render.jpg",
                 mime="image/jpeg",
             )
+# --- TAB 3: STYLE BANK ---
+    with tab3:
+        st.markdown("#### 📁 Cloud Style Bank (Google Drive)")
+        drive_folder_id = st.secrets.get("gcp_service_account", {}).get("drive_folder_id")
+        
+        if not drive_folder_id:
+            st.error("⚠️ Setup Required: Please add `drive_folder_id = \"YOUR_FOLDER_ID\"` to your Streamlit secrets to enable the Cloud Style Bank.")
+        else:
+            st.info("Upload reference photos here. The AI will 'look' at these images to extract the exact lighting and aesthetic for your prompts.")
+            uploaded_file = st.file_uploader("Upload Reference Image", type=["jpg", "jpeg", "png"])
+            
+            if st.button("UPLOAD TO DRIVE"):
+                if uploaded_file:
+                    with st.spinner("Securely uploading to your Google Drive..."):
+                        try:
+                            upload_to_drive(uploaded_file.getvalue(), uploaded_file.name, drive_folder_id)
+                            st.success("✅ Image securely added to the Style Bank!")
+                        except Exception as e:
+                            st.error(f"❌ Upload failed: {e}")
+                else:
+                    st.warning("Please select a file first.")
+                    
+            st.markdown("##### Current Cloud Gallery")
+            if st.button("Load Existing Styles"):
+                with st.spinner("Fetching gallery from Google Drive..."):
+                    images = get_drive_images(drive_folder_id)
+                    if images:
+                        cols = st.columns(3)
+                        for i, img in enumerate(images):
+                            with cols[i % 3]:
+                                if 'thumbnailLink' in img:
+                                    st.image(img['thumbnailLink'], caption=img['name'], use_container_width=True)
+                    else:
+                        st.info("Your Style Bank is currently empty.")
+
