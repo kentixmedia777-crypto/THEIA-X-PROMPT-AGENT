@@ -11,6 +11,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from PIL import Image, ImageEnhance
 from io import BytesIO
+from streamlit_cropper import st_cropper
 
 # --- CONFIGURATION ---
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
