@@ -8,9 +8,8 @@ import os
 import requests
 import datetime
 import gspread
+import base64
 from oauth2client.service_account import ServiceAccountCredentials
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 from PIL import Image, ImageEnhance
 from io import BytesIO
 
@@ -18,8 +17,8 @@ from io import BytesIO
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
 HISTORY_FILE = "theia_genetic_history.json"
 
-# --- GCP & DRIVE AUTHENTICATION (ADDED MISSING DRIVE HELPERS) ---
-def get_gcp_credentials():
+# --- GCP & GOOGLE SHEETS AUTHENTICATION ---
+def get_gspread_client():
     creds_dict = {
         "type": st.secrets["gcp_service_account"]["type"],
         "project_id": st.secrets["gcp_service_account"]["project_id"],
@@ -34,40 +33,39 @@ def get_gcp_credentials():
         "universe_domain": "googleapis.com"
     }
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-    return ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-
-def get_drive_service():
-    creds = get_gcp_credentials()
-    return build('drive', 'v3', credentials=creds)
-
-def get_gspread_client():
-    creds = get_gcp_credentials()
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     return gspread.authorize(creds)
 
-def upload_to_drive(file_bytes, filename, folder_id):
-    drive_service = get_drive_service()
-    file_metadata = {'name': filename, 'parents': [folder_id]}
-    media = MediaIoBaseUpload(BytesIO(file_bytes), mimetype='image/jpeg', resumable=True)
-    file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    return file.get('id')
+# --- STYLE BANK LOGIC (ImgBB + Google Sheets) ---
+def upload_to_imgbb(file_bytes, api_key):
+    url = "https://api.imgbb.com/1/upload"
+    payload = {
+        "key": api_key,
+        "image": base64.b64encode(file_bytes).decode("utf-8")
+    }
+    res = requests.post(url, data=payload)
+    res_data = res.json()
+    if res_data.get("success"):
+        return res_data["data"]["url"]
+    else:
+        raise Exception(res_data.get("error", {}).get("message", "Unknown ImgBB Error"))
 
-def get_drive_images(folder_id):
-    drive_service = get_drive_service()
-    query = f"'{folder_id}' in parents and trashed=false and mimeType contains 'image/'"
-    results = drive_service.files().list(q=query, fields="files(id, name, thumbnailLink)").execute()
-    return results.get('files', [])
+def save_style_url_to_sheet(image_url):
+    client = get_gspread_client()
+    sheet = client.open("Theia Billing").worksheet("Style Bank")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    sheet.append_row([image_url, timestamp])
 
-def download_drive_image(file_id):
-    drive_service = get_drive_service()
-    request = drive_service.files().get_media(fileId=file_id)
-    file = BytesIO()
-    downloader = MediaIoBaseDownload(file, request)
-    done = False
-    while done is False:
-        status, done = downloader.next_chunk()
-    return file.getvalue()
+def get_style_urls_from_sheet():
+    try:
+        client = get_gspread_client()
+        sheet = client.open("Theia Billing").worksheet("Style Bank")
+        urls = sheet.col_values(1) # Gets everything in Column A
+        return [url for url in urls if url.startswith("http")]
+    except:
+        return []
 
-# --- PERSISTENT BILLING LOGIC (GOOGLE SHEETS DATABASE) ---
+# --- PERSISTENT BILLING LOGIC ---
 def load_billing():
     try:
         client = get_gspread_client()
@@ -108,12 +106,11 @@ def reset_edits(subject_name):
     st.session_state[f"c_{subject_name}"] = 1.0
     st.session_state[f"s_{subject_name}"] = 1.0
 
-# --- UPDATED THEIA ENGINE (MASTER COMMAND: REAL AI PERSON) ---
+# --- THEIA ENGINE ---
 class TheiaPromptGenerator:
     def __init__(self):
         self.history = self._load_history()
 
-        # TIER 1 & 2: ABOVE STANDARD / ABOVE AVERAGE (Handsome/Beautiful, Glowing Skin)
         self.geo_above_average = [
             "striking, balanced facial proportions with a strong, defined jawline",
             "elegant Northern European features, high cheekbones, radiant complexion",
@@ -127,7 +124,6 @@ class TheiaPromptGenerator:
             "beautiful, smooth human skin catching the natural light beautifully, zero heavy blemishes"
         ]
 
-        # TIER 3 & 4: STANDARD / AVERAGE (Everyday Normal People, Varied Skin)
         self.geo_average = [
             "completely average, everyday facial structure, friendly and approachable",
             "a flat midface with a soft, unassuming jawline and kind eyes",
@@ -142,7 +138,6 @@ class TheiaPromptGenerator:
             "normal, everyday skin with a healthy but unpolished look, catching the sunlight naturally"
         ]
 
-        # TIER 5: BELOW AVERAGE (Flawed, Coarse, Highly Asymmetrical)
         self.geo_below_average = [
             "pronounced supraorbital ridge, heavy facial asymmetry, rugged structure",
             "narrow face with a prominent dorsal hump on the nose, weak chin",
@@ -232,7 +227,6 @@ class TheiaPromptGenerator:
         with open(HISTORY_FILE, 'w') as f:
             json.dump(list(self.history), f)
 
-    # UPDATED TO ACCEPT STYLE DNA
     def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None):
         
         name_seed = int(hashlib.md5((character_name + appearance_tier).encode()).hexdigest(), 16) % 100000
@@ -278,7 +272,6 @@ class TheiaPromptGenerator:
         if style_dna:
             visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
         else:
-            # Fallback if no images are in the Drive yet
             environment = random.choice(self.environments)
             lighting = random.choice(self.lighting_conditions)
             timeframe = random.choice(self.timeframes)
@@ -339,7 +332,6 @@ try:
 except:
     API_STATUS = False
 
-# UPDATED EXTRACTION PROMPT (Vision Analysis Included)
 EXTRACTION_PROMPT = """
 You are an expert script analyst and visual director.
 1. Read the following true crime/documentary script and extract all significant characters.
@@ -363,7 +355,7 @@ SCRIPT TO ANALYZE:
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
-st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v8.0 Cloud Studio</div>', unsafe_allow_html=True)
+st.markdown('<div class="custom-subtitle">Advanced Photographic Intelligence | v8.5 Cloud Studio</div>', unsafe_allow_html=True)
 
 password_input = st.sidebar.text_input("🔒 Security Portal", type="password", placeholder="Enter Passcode...")
 
@@ -392,7 +384,7 @@ if password_input == ACCESS_PASSWORD:
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini Pro (Vision)")
         st.sidebar.info("🎨 Engine: Modular RPX")
-        st.sidebar.info("☁️ Memory: Google Drive Sync")
+        st.sidebar.info("☁️ Memory: ImgBB Cloud Sync")
 
     tab1, tab2, tab3 = st.tabs(["📝 Prompt Studio", "🎨 Image Studio", "📁 Style Bank"])
 
@@ -400,19 +392,16 @@ if password_input == ACCESS_PASSWORD:
         st.markdown("#### 🎬 Script Ingestion")
         user_script = st.text_area("Input Stream", height=150, placeholder="Paste your documentary/narrative script here...", label_visibility="collapsed")
         
-        drive_folder_id = st.secrets.get("gcp_service_account", {}).get("drive_folder_id")
-        
         if st.button("EXTRACT & BUILD PROMPTS"):
             if user_script:
                 with st.spinner("Analyzing script and pulling Vision DNA from Style Bank..."):
                     try:
                         style_image_bytes = None
-                        # Fetch a reference image from Google Drive if configured
-                        if drive_folder_id:
-                            images_in_drive = get_drive_images(drive_folder_id)
-                            if images_in_drive:
-                                random_file = random.choice(images_in_drive)
-                                style_image_bytes = download_drive_image(random_file['id'])
+                        style_urls = get_style_urls_from_sheet()
+                        
+                        if style_urls:
+                            random_img_url = random.choice(style_urls)
+                            style_image_bytes = requests.get(random_img_url).content
 
                         model = genai.GenerativeModel("gemini-2.5-pro")
                         
@@ -540,7 +529,6 @@ if password_input == ACCESS_PASSWORD:
             enhanced_img = ImageEnhance.Sharpness(enhanced_img).enhance(sharpness)
             
             st.markdown("---")
-            
             try:
                 from streamlit_cropper import st_cropper
                 enable_crop = st.checkbox("✂️ Enable Cropping Tool")
@@ -553,7 +541,6 @@ if password_input == ACCESS_PASSWORD:
             except ImportError:
                 final_img = enhanced_img
                 st.image(final_img, use_container_width=True)
-                st.warning("Cropper module not found. Add 'streamlit-cropper' to requirements.txt to enable cropping.")
 
             buf = BytesIO()
             final_img.save(buf, format="JPEG", quality=95)
@@ -566,20 +553,23 @@ if password_input == ACCESS_PASSWORD:
             )
 
     with tab3:
-        st.markdown("#### 📁 Cloud Style Bank (Google Drive)")
-        drive_folder_id = st.secrets.get("gcp_service_account", {}).get("drive_folder_id")
+        st.markdown("#### 📁 Cloud Style Bank (ImgBB Sync)")
+        imgbb_api_key = st.secrets.get("imgbb_api_key")
         
-        if not drive_folder_id:
-            st.error("⚠️ Setup Required: Please add `drive_folder_id = \"YOUR_FOLDER_ID\"` to your Streamlit secrets to enable the Cloud Style Bank.")
+        if not imgbb_api_key:
+            st.error("⚠️ Setup Required: Please add `imgbb_api_key = \"YOUR_API_KEY\"` to your Streamlit secrets to enable the Cloud Style Bank.")
         else:
             st.info("Upload reference photos here. The AI will 'look' at these images to extract the exact lighting and aesthetic for your prompts.")
             uploaded_file = st.file_uploader("Upload Reference Image", type=["jpg", "jpeg", "png"])
             
-            if st.button("UPLOAD TO DRIVE"):
+            if st.button("UPLOAD TO STYLE BANK"):
                 if uploaded_file:
-                    with st.spinner("Securely uploading to your Google Drive..."):
+                    with st.spinner("Securely uploading to Cloud Database..."):
                         try:
-                            upload_to_drive(uploaded_file.getvalue(), uploaded_file.name, drive_folder_id)
+                            # 1. Upload to ImgBB
+                            img_url = upload_to_imgbb(uploaded_file.getvalue(), imgbb_api_key)
+                            # 2. Save URL to Google Sheets
+                            save_style_url_to_sheet(img_url)
                             st.success("✅ Image securely added to the Style Bank!")
                         except Exception as e:
                             st.error(f"❌ Upload failed: {e}")
@@ -588,13 +578,12 @@ if password_input == ACCESS_PASSWORD:
                     
             st.markdown("##### Current Cloud Gallery")
             if st.button("Load Existing Styles"):
-                with st.spinner("Fetching gallery from Google Drive..."):
-                    images = get_drive_images(drive_folder_id)
-                    if images:
+                with st.spinner("Fetching gallery from Database..."):
+                    urls = get_style_urls_from_sheet()
+                    if urls:
                         cols = st.columns(3)
-                        for i, img in enumerate(images):
+                        for i, url in enumerate(urls):
                             with cols[i % 3]:
-                                if 'thumbnailLink' in img:
-                                    st.image(img['thumbnailLink'], caption=img['name'], use_container_width=True)
+                                st.image(url, use_container_width=True)
                     else:
                         st.info("Your Style Bank is currently empty.")
