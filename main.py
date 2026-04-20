@@ -253,7 +253,14 @@ st.markdown("""
         display: none !important; 
     }
 
-   /* 2. Make header transparent to hide the ugly white bar */
+   /* 2. NUKE THE TOP RIGHT MENU (Share, Github, Edit, Dots) */
+    [data-testid="stHeaderActionElements"],
+    [data-testid="stToolbar"],
+    [data-testid="stAppToolbar"] {
+        display: none !important;
+    }
+
+   /* 3. Make header transparent to hide the ugly white bar */
     header { background-color: transparent !important; }
     
     /* Hide the footer watermark */
