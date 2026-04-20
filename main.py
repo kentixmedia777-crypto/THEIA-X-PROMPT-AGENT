@@ -455,8 +455,8 @@ if password_input == ACCESS_PASSWORD:
         model_choice = st.selectbox(
             "Select Generation Engine",
             [
-                "OpenAI GPT-Image 1.5 (Standard)", 
-                "Google: Nano Banana 2 (Latest)",
+                "Google: Nano Banana 2 (Latest)", 
+                "OpenAI GPT-Image 1.5 (Standard)",
                 "Black Forest Labs: Flux.1 (Highly Photorealistic)",
                 "Stability AI: SDXL (Alternative Style)"
             ]
