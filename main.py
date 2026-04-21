@@ -132,10 +132,10 @@ class TheiaPromptGenerator:
             "a standard, relatable face shape with a comfortable, familiar structure"
         ]
         self.skin_average = [
-            "unretouched skin texture with visible pores, natural sebum/oil catching the light, faint acne scars",
-            "matte but normal human skin, faint laugh lines, slight rosacea on the cheeks, natural variations in tone",
-            "a textured and authentic complexion, tiny pores on the nose, uneven pigmentation, highly realistic peach fuzz",
-            "normal everyday skin, visible capillaries, unpolished and raw, showing real human imperfections"
+            "natural human skin with realistic faint pores, completely unretouched and authentic",
+            "normal everyday skin texture, completely unedited, healthy but unpolished",
+            "authentic raw complexion, highly realistic, slight natural variations in tone",
+            "matte but normal skin, unpolished, catching the light naturally, highly human"
         ]
 
         self.geo_below_average = [
@@ -144,8 +144,9 @@ class TheiaPromptGenerator:
             "coarsened and robust facial features, deeply set, asymmetrical eyes"
         ]
         self.skin_below_average = [
-            "sun-damaged and weathered complexion, asymmetrical freckling, deep crow's feet, rugged texture",
-            "highly detailed and coarse skin texture, visible pores, razor burn, uneven raw complexion, slight under-eye bags"
+            "completely unedited natural skin, slight fine lines, highly authentic raw texture",
+            "realistic unpolished complexion, unretouched, normal everyday skin without filters",
+            "natural everyday skin, highly authentic and human, completely unedited"
         ]
 
         self.body_types = [
@@ -203,10 +204,10 @@ class TheiaPromptGenerator:
         ]
 
         self.camera_hardware_middle = [
-            "shot on an iPhone, photo from a normal phone, completely unretouched, low dynamic range, raw natural colors",
-            "shot on an older Samsung Galaxy, soft focus, raw and unedited, authentic camera roll snapshot",
-            "front-facing smartphone selfie camera, slight lens distortion, ISO noise, true-to-life throwaway snapshot",
-            "captured on a cheap digital point-and-shoot, flat lighting, slight red-eye effect, completely unretouched"
+            "shot on a standard smartphone, low dynamic range, muted natural colors",
+            "authentic digital phone camera snapshot, raw computational photography look, unfiltered",
+            "standard everyday smartphone lens, slight ISO noise, true-to-life throwaway snapshot",
+            "captured on a generic smartphone, flat natural lighting, completely unretouched"
         ]
 
         self.timeframes = [
@@ -506,8 +507,8 @@ if password_input == ACCESS_PASSWORD:
                             api_endpoint = "google/nano-banana-2" 
                             api_input = {
                                 "prompt": optimized_prompt,
-                                # THE IRON CURTAIN: Explicitly kills the 'Crunchy/3D' look
-                                "negative_prompt": "HDR, oversharpened, high contrast, neon greens, oversaturated, crunchy details, professional photography, DSLR, studio lighting, cinematic, plastic, CGI, 3D render, overly smooth, airbrushed, artificial, beauty filter",
+                                # THE IRON CURTAIN: Now bans floating hands, mutated mirrors, and diseased/spotted skin
+                                "negative_prompt": "floating phone, disembodied hands, extra fingers, mutated mirror reflection, severe acne, hyperpigmentation, trypophobia, excessive spots, dirty skin, diseased, HDR, oversharpened, high contrast, professional photography, DSLR, studio lighting, plastic, CGI, 3D render, overly smooth, airbrushed, beauty filter",
                                 "output_quality": 100,
                                 "num_inference_steps": 25, # Lowered to ensure the image stays soft and natural
                                 "guidance_scale": 3.8 # CRITICAL: Lowered to stop the AI from over-saturating colors
