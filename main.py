@@ -227,9 +227,10 @@ class TheiaPromptGenerator:
         with open(HISTORY_FILE, 'w') as f:
             json.dump(list(self.history), f)
 
-    def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None, gender="person"):
+    def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None, gender="person", race="diverse", hair="average hair", eyes="average eyes", clothing="casual clothes"):
         
-        name_seed = int(hashlib.md5((character_name + appearance_tier + gender).encode()).hexdigest(), 16) % 100000
+        # Enhanced seed lock using race and gender
+        name_seed = int(hashlib.md5((character_name + appearance_tier + gender + race).encode()).hexdigest(), 16) % 100000
 
         tier_lower = appearance_tier.lower()
         if tier_lower in ["above standard", "above average"]:
@@ -256,35 +257,39 @@ class TheiaPromptGenerator:
             self._save_history()
 
         expression = random.choice(self.expressions)
-        framing = random.choice(self.framings)
-
-        camera = random.choice(self.camera_hardware_middle)
-        clothing_options = [
-            "a comfortable, stylish everyday t-shirt", 
-            "a casual, unbranded button-up shirt", 
-            "a light outdoor jacket perfect for the weather", 
-            "a cozy, well-fitting sweater",
-            "casual, neat, everyday weekend wear"
+        
+        # LISA UPDATE: Fixed Selfie Hands & Added Companion/Environmental Shots
+        framings = [
+            "framed as a close-up Selfie (hands and arms are completely out of frame), looking directly into the lens",
+            "a Candid Medium Shot taken by a companion across a table, highly natural posture",
+            "a Cowboy Shot (thigh-up), standing naturally in their environment, arms relaxed",
+            "an Environmental Snapshot, capturing them interacting naturally with their surroundings, documentary style"
         ]
-        wealth_modifier = f"wearing {random.choice(clothing_options)}."
+        framing = random.choice(framings)
+        camera = random.choice(self.camera_hardware_middle)
         
         if style_dna:
             visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
+            background_details = "The background features highly realistic, everyday domestic or outdoor artifacts that perfectly match this style."
         else:
             environment = random.choice(self.environments)
             lighting = random.choice(self.lighting_conditions)
             timeframe = random.choice(self.timeframes)
             visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
+            background_details = "The background features highly realistic, context-appropriate everyday artifacts, completely unblurred and lived-in."
 
+        # THE ULTIMATE PROMPT ASSEMBLY
         prompt = (
-            f"A highly realistic, documentary-style photograph of a totally unique, real {gender} named {character_name}. "
+            f"A highly realistic, unedited documentary-style photograph of a totally unique, real {race} {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
-            f"This {gender} has {body_type}. They have {facial_structure}. Their face features {skin_complexion}. "
+            f"PHYSICAL TRAITS: They have {hair} and {eyes}. This {gender} has {body_type}. "
+            f"FACIAL GEOMETRY: {facial_structure}. SKIN TEXTURE: {skin_complexion}. "
             f"They are {vibe}. "
             f"The image is {framing}, captured by {camera}. "
-            f"{visual_aesthetic} "
-            f"They are showing a deeply human emotion: {expression}. {wealth_modifier} "
-            f"This is a raw, unmodified, completely authentic snapshot of a real {gender} living their best life. Absolutely zero AI artifacts, no plastic 3D skin, no beauty filters, and no studio staging."
+            f"{visual_aesthetic} {background_details} "
+            f"They are showing a deeply human emotion: {expression}. ATTIRE: wearing {clothing}. "
+            f"This is a raw, unmodified, completely authentic snapshot of a real {gender} living their best life. "
+            f"Absolutely zero AI artifacts, no mutant hands, no plastic 3D skin, no beauty filters, and no studio staging."
         )
         return prompt, genetic_signature
 
@@ -338,17 +343,32 @@ You are an expert script analyst and visual director.
 
 For each character, determine:
 1. socioeconomic_status ("wealthy", "standard", "struggling")
-2. appearance_tier (Choose EXACTLY ONE from this list: "below average", "average", "standard", "above average", "above standard")
+2. appearance_tier ("below average", "average", "standard", "above average", "above standard")
 3. age (estimate if not explicitly stated)
 4. gender ("man", "woman", "boy", "girl", or "non-binary")
-5. details (a short 1-sentence summary of who they are in the story)
+5. race_ethnicity (e.g., "Caucasian", "African American", "East Asian", "Hispanic", "Middle Eastern", "South Asian", etc.)
+6. hair (e.g., "short blonde buzzcut", "long curly black hair", "bald")
+7. eyes (e.g., "piercing blue eyes", "warm brown eyes")
+8. clothing (e.g., "faded mechanic uniform", "expensive tailored suit", "casual oversized hoodie")
+9. details (a short 1-sentence summary of who they are in the story)
 
 You MUST return ONLY a raw JSON object. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
 {
     "style_dna": "Soft golden hour sunlight, captured on a modern smartphone, casual outdoor park setting.",
     "characters": [
-        {"name": "John Doe", "age": "45", "gender": "man", "details": "The lead detective.", "socioeconomic_status": "standard", "appearance_tier": "above average"}
+        {
+            "name": "John Doe", 
+            "age": "45", 
+            "gender": "man", 
+            "race_ethnicity": "African American",
+            "hair": "short graying hair",
+            "eyes": "dark brown eyes",
+            "clothing": "worn-out denim jacket",
+            "details": "The lead detective on the case.", 
+            "socioeconomic_status": "standard", 
+            "appearance_tier": "above average"
+        }
     ]
 }
 SCRIPT TO ANALYZE:
@@ -431,12 +451,21 @@ if password_input == ACCESS_PASSWORD:
                             appearance = char.get("appearance_tier", "standard")
                             age = char.get("age", "Unknown")
                             gender = char.get("gender", "person") 
+                            race = char.get("race_ethnicity", "mixed race")
+                            hair = char.get("hair", "average hair")
+                            eyes = char.get("eyes", "average eyes")
+                            clothing = char.get("clothing", "casual everyday clothes")
                             details = char.get("details", "No details available.")
                             
-                            prompt, genetics = theia_engine.generate_prompt(name, status, appearance, style_dna, gender)
+                            # Passing ALL physical traits to the engine
+                            prompt, genetics = theia_engine.generate_prompt(
+                                name, status, appearance, style_dna, gender, race, hair, eyes, clothing
+                            )
                             
                             st.markdown(f"### 👤 {name}")
-                            st.caption(f"**Age:** {age} | **Gender:** {gender.title()} | **Role:** {details}")
+                            st.caption(f"**Age:** {age} | **Gender:** {gender.title()} | **Race:** {race.title()}")
+                            st.caption(f"**Hair:** {hair.title()} | **Eyes:** {eyes.title()}")
+                            st.caption(f"**Attire:** {clothing.title()} | **Role:** {details}")
                             st.caption(f"**Casting Tier:** `{appearance.upper()}` | **Locked Hash:** `{genetics}`")
                             
                             st.code(prompt, language="markdown")
