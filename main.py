@@ -203,9 +203,10 @@ class TheiaPromptGenerator:
         ]
 
         self.camera_hardware_middle = [
-            "a crisp, beautiful smartphone photo from a modern phone, completely unretouched",
-            "shot as an unfiltered iPhone snapshot with natural focus and vibrant colors",
-            "taken on a high-quality digital camera, capturing everyday documentary realism"
+            "shot on an iPhone, photo from a normal phone, completely unretouched, low dynamic range, raw natural colors",
+            "shot on an older Samsung Galaxy, soft focus, raw and unedited, authentic camera roll snapshot",
+            "front-facing smartphone selfie camera, slight lens distortion, ISO noise, true-to-life throwaway snapshot",
+            "captured on a cheap digital point-and-shoot, flat lighting, slight red-eye effect, completely unretouched"
         ]
 
         self.timeframes = [
@@ -280,7 +281,7 @@ class TheiaPromptGenerator:
 
         # THE ULTIMATE PROMPT ASSEMBLY
         prompt = (
-            f"A highly realistic, unedited documentary-style photograph of a totally unique, real {race} {gender} named {character_name}. "
+            f"A raw, unedited smartphone photograph of a totally unique, real {race} {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
             f"PHYSICAL TRAITS: They have {hair} and {eyes}. This {gender} has {body_type}. "
             f"FACIAL GEOMETRY: {facial_structure}. SKIN TEXTURE: {skin_complexion}. "
