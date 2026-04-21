@@ -132,10 +132,10 @@ class TheiaPromptGenerator:
             "a standard, relatable face shape with a comfortable, familiar structure"
         ]
         self.skin_average = [
-            "natural human skin with realistic pores, a few faint freckles, completely unedited texture",
-            "matte but normal human skin, faint laugh lines around the eyes, natural variations in tone",
-            "a textured and authentic complexion, maybe one or two tiny natural blemishes, very realistic",
-            "normal, everyday skin with a healthy but unpolished look, catching the sunlight naturally"
+            "unretouched skin texture with visible pores, natural sebum/oil catching the light, faint acne scars",
+            "matte but normal human skin, faint laugh lines, slight rosacea on the cheeks, natural variations in tone",
+            "a textured and authentic complexion, tiny pores on the nose, uneven pigmentation, highly realistic peach fuzz",
+            "normal everyday skin, visible capillaries, unpolished and raw, showing real human imperfections"
         ]
 
         self.geo_below_average = [
@@ -144,8 +144,8 @@ class TheiaPromptGenerator:
             "coarsened and robust facial features, deeply set, asymmetrical eyes"
         ]
         self.skin_below_average = [
-            "sun-damaged and weathered complexion with deep crow's feet and a rugged texture",
-            "highly detailed and coarse skin texture, showing visible pores and an uneven, raw complexion"
+            "sun-damaged and weathered complexion, asymmetrical freckling, deep crow's feet, rugged texture",
+            "highly detailed and coarse skin texture, visible pores, razor burn, uneven raw complexion, slight under-eye bags"
         ]
 
         self.body_types = [
@@ -498,17 +498,19 @@ if password_input == ACCESS_PASSWORD:
             if manual_prompt:
                 with st.spinner(f"Rendering image using {model_choice}..."):
                     try:
-                        # FREEPIK SECRET SAUCE: Hidden prompt enhancement for raw realism
-                        realism_booster = ", extremely detailed raw photograph, 8k resolution, photorealistic, sharp focus, DSLR, natural skin texture, unretouched"
+                        # SMARTPHONE GALLERY BOOSTER: Incorporating Lisa's RAW/Low-Fi aesthetic
+                        realism_booster = ", raw unedited found footage, throwaway smartphone snapshot, low dynamic range, digital grain, amateur photography"
                         optimized_prompt = manual_prompt + realism_booster
 
                         if "Nano Banana 2" in model_choice:
                             api_endpoint = "google/nano-banana-2" 
                             api_input = {
                                 "prompt": optimized_prompt,
-                                "negative_prompt": "plastic, CGI, 3D, overly smooth, airbrushed, glossy skin, artificial, uncanny valley, deformed, cartoon, illustration, oversaturated, beauty filter, flawless, porcelain",
+                                # THE IRON CURTAIN: Explicitly kills the 'Crunchy/3D' look
+                                "negative_prompt": "HDR, oversharpened, high contrast, neon greens, oversaturated, crunchy details, professional photography, DSLR, studio lighting, cinematic, plastic, CGI, 3D render, overly smooth, airbrushed, artificial, beauty filter",
                                 "output_quality": 100,
-                                "num_inference_steps": 50 # Forces the AI to render with much higher detail
+                                "num_inference_steps": 25, # Lowered to ensure the image stays soft and natural
+                                "guidance_scale": 3.8 # CRITICAL: Lowered to stop the AI from over-saturating colors
                             } 
                         elif "GPT-Image 1.5" in model_choice:
                             api_endpoint = "openai/gpt-image-1.5"
