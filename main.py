@@ -1,6 +1,5 @@
 import streamlit as st
 import google.generativeai as genai
-import replicate
 import json
 import random
 import hashlib
@@ -10,8 +9,6 @@ import datetime
 import gspread
 import base64
 from oauth2client.service_account import ServiceAccountCredentials
-from PIL import Image, ImageEnhance
-from io import BytesIO
 
 # --- CONFIGURATION ---
 ACCESS_PASSWORD = "LUCALLES-PRODUCTION-2026"
@@ -64,47 +61,6 @@ def get_style_urls_from_sheet():
         return [url for url in urls if url.startswith("http")]
     except:
         return []
-
-# --- PERSISTENT BILLING LOGIC ---
-def load_billing():
-    try:
-        client = get_gspread_client()
-        sheet = client.open("Theia Billing").sheet1
-        
-        current_month = datetime.datetime.now().strftime("%B %Y")
-        saved_month = sheet.cell(2, 1).value 
-        
-        if saved_month == current_month:
-            credits_val = sheet.cell(2, 2).value 
-            images_val = sheet.cell(2, 3).value  
-            return {
-                "month": current_month,
-                "credits": float(credits_val) if credits_val else 0.0,
-                "images": int(images_val) if images_val else 0
-            }
-        else:
-            sheet.update_cell(2, 1, current_month) 
-            sheet.update_cell(2, 2, 0.0)           
-            sheet.update_cell(2, 3, 0)             
-            return {"month": current_month, "credits": 0.0, "images": 0}
-            
-    except Exception as e:
-        return {"month": "System Error", "credits": 0.0, "images": 0}
-
-def save_billing(data):
-    try:
-        client = get_gspread_client()
-        sheet = client.open("Theia Billing").sheet1
-        sheet.update_cell(2, 2, data["credits"]) 
-        sheet.update_cell(2, 3, data["images"])  
-    except:
-        pass
-
-# --- STREAMLIT CALLBACK FUNCTION ---
-def reset_edits(subject_name):
-    st.session_state[f"b_{subject_name}"] = 1.0
-    st.session_state[f"c_{subject_name}"] = 1.0
-    st.session_state[f"s_{subject_name}"] = 1.0
 
 # --- THEIA ENGINE ---
 class TheiaPromptGenerator:
@@ -195,12 +151,10 @@ class TheiaPromptGenerator:
         ]
 
         self.framings = [
-            "framed as a casual close-up Selfie, holding the phone with one arm extended, making direct eye contact with the camera",
-            "framed as a fun Medium Shot Selfie, looking directly into the lens with a great angle",
-            "a Candid Medium Shot taken by a friend sitting across from them, subject is looking happily at the camera",
-            "a Cowboy Shot (thigh-up), standing confidently and looking directly at the camera",
-            "a Close-Up portrait taken by a friend, focusing deeply on their happy expression and eye contact",
-            "a Full Body Shot taken outdoors, showing their entire outfit and posture, looking towards the camera"
+            "framed as a close-up Selfie (hands and arms are completely out of frame), looking directly into the lens",
+            "a Candid Medium Shot taken by a companion across a table, highly natural posture",
+            "a Cowboy Shot (thigh-up), standing naturally in their environment, arms relaxed",
+            "an Environmental Snapshot, capturing them interacting naturally with their surroundings, documentary style"
         ]
 
         self.camera_hardware_middle = [
@@ -259,15 +213,7 @@ class TheiaPromptGenerator:
             self._save_history()
 
         expression = random.choice(self.expressions)
-        
-        # LISA UPDATE: Fixed Selfie Hands & Added Companion/Environmental Shots
-        framings = [
-            "framed as a close-up Selfie (hands and arms are completely out of frame), looking directly into the lens",
-            "a Candid Medium Shot taken by a companion across a table, highly natural posture",
-            "a Cowboy Shot (thigh-up), standing naturally in their environment, arms relaxed",
-            "an Environmental Snapshot, capturing them interacting naturally with their surroundings, documentary style"
-        ]
-        framing = random.choice(framings)
+        framing = random.choice(self.framings)
         camera = random.choice(self.camera_hardware_middle)
         
         if style_dna:
@@ -290,8 +236,8 @@ class TheiaPromptGenerator:
             f"The image is {framing}, captured by {camera}. "
             f"{visual_aesthetic} {background_details} "
             f"They are showing a deeply human emotion: {expression}. ATTIRE: wearing {clothing}. "
-            f"This is a raw, unmodified, completely authentic snapshot of a real {gender} living their best life. "
-            f"Absolutely zero AI artifacts, no mutant hands, no plastic 3D skin, no beauty filters, and no studio staging."
+            f"This must look exactly like a leaked, private photo gallery snapshot. "
+            f"Absolutely zero AI artifacts, no mutant hands, no plastic 3D skin, no professional photography, no studio lighting, and no beauty filters."
         )
         return prompt, genetic_signature
 
@@ -333,7 +279,6 @@ st.markdown("""
 # --- SECURITY & API CONFIG ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    os.environ["REPLICATE_API_TOKEN"] = st.secrets["REPLICATE_API_TOKEN"]
     API_STATUS = True
 except:
     API_STATUS = False
@@ -385,32 +330,14 @@ if password_input == ACCESS_PASSWORD:
     st.sidebar.success("🟢 SYSTEM ONLINE")
     st.sidebar.markdown("---")
     
-    if 'billing' not in st.session_state:
-        st.session_state.billing = load_billing()
-        
-    billing_display = st.sidebar.empty()
-    
-    def update_billing_ui():
-        month_name = datetime.datetime.now().strftime("%B %Y")
-        billing_display.markdown(f"""
-            <div style='background: rgba(43,45,49,0.5); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;'>
-                <p style='color: #949ba4; margin: 0; font-size: 0.8rem;'>{month_name} USAGE</p>
-                <h2 style='color: #43b581; margin: 5px 0 5px 0;'>💳 Credit ${st.session_state.billing['credits']:.2f}</h2>
-                <p style='color: #dbdee1; margin: 0; font-size: 0.9rem;'>🖼️ {st.session_state.billing['images']} Images Generated</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
-    update_billing_ui()
-    st.sidebar.markdown("---")
-    
     if API_STATUS:
         st.sidebar.info("🧠 Brain: Gemini Pro (Vision)")
         st.sidebar.info("🎨 Engine: Modular RPX")
         st.sidebar.info("☁️ Memory: ImgBB Cloud Sync")
-        # RESTORED AUTHENTICATION LINE
         st.sidebar.info("🏢 Auth: Lucalles Productions")
 
-    tab1, tab2, tab3 = st.tabs(["📝 Prompt Studio", "🎨 Image Studio", "📁 Style Bank"])
+    # ONLY 2 TABS REMAIN
+    tab1, tab2 = st.tabs(["📝 Prompt Studio", "📁 Style Bank"])
 
     with tab1:
         st.markdown("#### 🎬 Script Ingestion")
@@ -459,7 +386,6 @@ if password_input == ACCESS_PASSWORD:
                             clothing = char.get("clothing", "casual everyday clothes")
                             details = char.get("details", "No details available.")
                             
-                            # Passing ALL physical traits to the engine
                             prompt, genetics = theia_engine.generate_prompt(
                                 name, status, appearance, style_dna, gender, race, hair, eyes, clothing
                             )
@@ -480,125 +406,6 @@ if password_input == ACCESS_PASSWORD:
                 st.warning("⚠️ Input Buffer Empty. Please paste a script.")
 
     with tab2:
-        st.markdown("#### 🖼️ Image Generation & Editing")
-        
-        # REORDERED SO OPENAI IS DEFAULT
-        model_choice = st.selectbox(
-            "Select Generation Engine",
-            [
-                "Google: Nano Banana 2 (Latest)", 
-                "OpenAI GPT-Image 1.5 (Standard)",
-                "Black Forest Labs: Flux.1 (Highly Photorealistic)",
-                "Stability AI: SDXL (Alternative Style)"
-            ]
-        )
-        
-        manual_prompt = st.text_area("Paste Character Prompt Here", height=150)
-        
-        if st.button("GENERATE IMAGE"):
-            if manual_prompt:
-                with st.spinner(f"Rendering image using {model_choice}..."):
-                    try:
-                        # SMARTPHONE GALLERY BOOSTER: Incorporating Lisa's RAW/Low-Fi aesthetic
-                        realism_booster = ", raw unedited found footage, throwaway smartphone snapshot, low dynamic range, digital grain, amateur photography"
-                        optimized_prompt = manual_prompt + realism_booster
-
-                        if "Nano Banana 2" in model_choice:
-                            api_endpoint = "google/nano-banana-2" 
-                            api_input = {
-                                "prompt": optimized_prompt,
-                                # THE IRON CURTAIN: Now bans floating hands, mutated mirrors, and diseased/spotted skin
-                                "negative_prompt": "floating phone, disembodied hands, extra fingers, mutated mirror reflection, severe acne, hyperpigmentation, trypophobia, excessive spots, dirty skin, diseased, HDR, oversharpened, high contrast, professional photography, DSLR, studio lighting, plastic, CGI, 3D render, overly smooth, airbrushed, beauty filter",
-                                "output_quality": 100,
-                                "num_inference_steps": 25, # Lowered to ensure the image stays soft and natural
-                                "guidance_scale": 3.8 # CRITICAL: Lowered to stop the AI from over-saturating colors
-                            } 
-                        elif "GPT-Image 1.5" in model_choice:
-                            api_endpoint = "openai/gpt-image-1.5"
-                            api_input = {"prompt": optimized_prompt, "size": "1024x1024", "quality": "high", "style": "natural"}
-                        elif "Flux.1" in model_choice:
-                            api_endpoint = "black-forest-labs/flux-schnell"
-                            api_input = {"prompt": optimized_prompt}
-                        elif "SDXL" in model_choice:
-                            api_endpoint = "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
-                            api_input = {"prompt": optimized_prompt}
-                        
-                        output = replicate.run(api_endpoint, input=api_input)
-                        
-                        if isinstance(output, list):
-                            image_url = str(output[0])
-                        else:
-                            image_url = str(output)
-                            
-                        img_response = requests.get(image_url)
-                        img_bytes = img_response.content
-                        
-                        st.session_state["current_rendered_image"] = img_bytes
-                        
-                        st.session_state.billing['credits'] += 0.40
-                        st.session_state.billing['images'] += 1
-                        save_billing(st.session_state.billing)
-                        update_billing_ui()
-                        
-                    except Exception as e:
-                        st.error("❌ Rendering Error")
-                        st.code(f"Error Details: {e}")
-            else:
-                st.warning("⚠️ Please paste a prompt first.")
-                
-        if "current_rendered_image" in st.session_state:
-            st.markdown("---")
-            st.markdown("##### 🎛️ Post-Processing & Cropping")
-            
-            if "b_manual" not in st.session_state: st.session_state["b_manual"] = 1.0
-            if "c_manual" not in st.session_state: st.session_state["c_manual"] = 1.0
-            if "s_manual" not in st.session_state: st.session_state["s_manual"] = 1.0
-            
-            def reset_manual_edits():
-                st.session_state["b_manual"] = 1.0
-                st.session_state["c_manual"] = 1.0
-                st.session_state["s_manual"] = 1.0
-                
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                brightness = st.slider("Brightness", 0.5, 1.5, key="b_manual")
-            with col2:
-                contrast = st.slider("Contrast", 0.5, 1.5, key="c_manual")
-            with col3:
-                sharpness = st.slider("Sharpness", 0.0, 2.5, key="s_manual")
-            
-            st.button("↩️ Reset Sliders", on_click=reset_manual_edits)
-            
-            base_img = Image.open(BytesIO(st.session_state["current_rendered_image"]))
-            enhanced_img = ImageEnhance.Brightness(base_img).enhance(brightness)
-            enhanced_img = ImageEnhance.Contrast(enhanced_img).enhance(contrast)
-            enhanced_img = ImageEnhance.Sharpness(enhanced_img).enhance(sharpness)
-            
-            st.markdown("---")
-            try:
-                from streamlit_cropper import st_cropper
-                enable_crop = st.checkbox("✂️ Enable Cropping Tool")
-                if enable_crop:
-                    st.caption("Drag the corners of the blue box to crop. The final image will be updated below.")
-                    final_img = st_cropper(enhanced_img, realtime_update=True, box_color='#5865F2', aspect_ratio=None)
-                else:
-                    final_img = enhanced_img
-                    st.image(final_img, use_container_width=True)
-            except ImportError:
-                final_img = enhanced_img
-                st.image(final_img, use_container_width=True)
-
-            buf = BytesIO()
-            final_img.save(buf, format="JPEG", quality=95)
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.download_button(
-                label="⬇️ Download Final Render",
-                data=buf.getvalue(),
-                file_name="theia_studio_render.jpg",
-                mime="image/jpeg",
-            )
-
-    with tab3:
         st.markdown("#### 📁 Cloud Style Bank (ImgBB Sync)")
         imgbb_api_key = st.secrets.get("imgbb_api_key")
         
