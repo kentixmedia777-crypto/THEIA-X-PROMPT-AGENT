@@ -331,7 +331,7 @@ if password_input == ACCESS_PASSWORD:
     st.sidebar.markdown("---")
     
     if API_STATUS:
-        st.sidebar.info("🧠 Brain: Gemini Flash")
+        st.sidebar.info("🧠 Brain: Gemini Pro 3.1")
         st.sidebar.info("🎨 Engine: Python")
         st.sidebar.info("☁️ Memory: ImgBB Cloud Sync")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
