@@ -144,10 +144,10 @@ class TheiaPromptGenerator:
         ]
 
         self.lighting_conditions = [
-            "gorgeous golden hour sunlight casting a warm, beautiful glow on their face",
-            "bright, clear, natural daylight illuminating them perfectly",
-            "soft, flattering overcast light creating incredibly realistic, even skin tones",
-            "warm ambient indoor lighting creating a cozy and inviting atmosphere"
+            "clear, even natural ambient light, neutral-cool white balance, completely un-staged",
+            "flat overcast daylight, cool digital white balance, absolute zero warm golden tones",
+            "standard everyday indoor ceiling light, neutral color cast, balanced normal exposure",
+            "clean midday daylight, realistic unedited light distribution, zero artificial tint"
         ]
 
         self.framings = [
@@ -162,13 +162,11 @@ class TheiaPromptGenerator:
         ]
 
         self.camera_hardware_middle = [
-            "shot on an older iPhone 11, basic amateur photography, flat standard lighting",
-            "uploaded directly to Facebook in 2018, standard smartphone lens, compression artifacts",
-            "a quick, disposable smartphone picture, slightly blurry, no professional lighting",
-            "captured on a basic Android phone, muted colors, completely amateur snapshot",
-            "a throwaway camera-roll photo, slightly bad lighting, completely un-cinematic"
+            "shot on an older mobile camera, post-processed with lowered contrast (-35), boosted exposure (+35), and crushed dark shadows (-25)",
+            "authentic phone snapshot, slightly desaturated tonal curve, lowered vibrance, neutral-cool white balance applied",
+            "standard everyday mobile lens, flat tonal profile, muted saturation, crisp digital sharpness, zero artificial warmth",
+            "amateur smartphone picture, raised base exposure (+35), deepened black point, slight digital grain and sharp rendering"
         ]
-
         self.timeframes = [
             "captured exactly during a perfect, memorable day",
             "a casual, spontaneous memory from a fantastic weekend",
@@ -231,7 +229,7 @@ class TheiaPromptGenerator:
             visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
             background_details = "The background features highly realistic, context-appropriate everyday artifacts, completely unblurred and lived-in."
 
-        # THE ULTIMATE PROMPT ASSEMBLY
+        # THE ULTIMATE PROMPT ASSEMBLY (With hardcoded Light Curve & Anti-Warmth rules)
         prompt = (
             f"An amateur, unedited smartphone photograph of a real {race} {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
@@ -241,8 +239,8 @@ class TheiaPromptGenerator:
             f"The composition is {framing}, {camera}. "
             f"{visual_aesthetic} {background_details} "
             f"They are showing a candid emotion: {expression}. ATTIRE: wearing {clothing}. "
-            f"This must look exactly like an authentic, throwaway private photo gallery snapshot. "
-            f"Absolutely zero AI artifacts, no hyper-detailed HD skin, no professional DSLR photography, no studio lighting, no perfect centering, and no beauty filters."
+            f"This must look exactly like an authentic, throwaway private photo gallery snapshot with a realistic, neutral-to-cool color palette. "
+            f"Absolutely zero AI artifacts, no hyper-vibrant saturation, no warm golden-hour lighting, no heavy cinematic contrast, no studio airbrushing, and no beauty filters."
         )
         return prompt, genetic_signature
 
