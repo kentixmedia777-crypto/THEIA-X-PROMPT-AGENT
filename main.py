@@ -162,10 +162,10 @@ class TheiaPromptGenerator:
         ]
 
         self.camera_hardware_middle = [
-            "shot on an older mobile camera, post-processed with lowered contrast (-35), boosted exposure (+35), and crushed dark shadows (-25)",
-            "authentic phone snapshot, slightly desaturated tonal curve, lowered vibrance, neutral-cool white balance applied",
-            "standard everyday mobile lens, flat tonal profile, muted saturation, crisp digital sharpness, zero artificial warmth",
-            "amateur smartphone picture, raised base exposure (+35), deepened black point, slight digital grain and sharp rendering"
+            "captured on a standard 12-megapixel smartphone sensor, post-processed with lowered contrast (-35) and boosted exposure (+35), deep depth of field with the background completely in focus",
+            "authentic mobile snapshot, fixed standard phone lens, slightly desaturated tonal curve, crushed dark shadows (-25), absolute zero shallow depth of field",
+            "everyday middle-tier smartphone camera, 12MP limit, flat mobile sensor rendering, muted saturation, foreground and background equally sharp",
+            "amateur phone picture, raised base exposure (+35), normal focal length, deep infinite focus, slight digital grain, zero cinematic background blur"
         ]
         self.timeframes = [
             "captured exactly during a perfect, memorable day",
@@ -219,19 +219,27 @@ class TheiaPromptGenerator:
         framing = random.choice(self.framings)
         camera = random.choice(self.camera_hardware_middle)
         
+        # --- THE SMART CONFLICT RESOLVER ---
         if style_dna:
             visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
-            background_details = "The background features highly realistic, everyday domestic or outdoor artifacts that perfectly match this style."
+            background_details = "The background features highly authentic everyday office or domestic items matching this specific setting."
+            
+            # Prevent the AI from wearing Safari/Tactical gear inside standard indoor rooms
+            if any(word in style_dna.lower() for word in ["office", "indoor", "room", "desk", "inside", "house", "apartment"]):
+                clothing = "casual, normal everyday indoor attire"
+                
+            color_override = "adhering to the natural lighting color of the setting"
         else:
             environment = random.choice(self.environments)
             lighting = random.choice(self.lighting_conditions)
             timeframe = random.choice(self.timeframes)
             visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
-            background_details = "The background features highly realistic, context-appropriate everyday artifacts, completely unblurred and lived-in."
+            background_details = "The background features highly authentic, everyday lived-in details."
+            color_override = "with a realistic, neutral-to-cool color palette"
 
-        # THE ULTIMATE PROMPT ASSEMBLY (With hardcoded Light Curve & Anti-Warmth rules)
+        # THE ULTIMATE PROMPT ASSEMBLY (Version 9.5 - Locked to Mid-Tier Mobile Sensor)
         prompt = (
-            f"An amateur, unedited smartphone photograph of a real {race} {gender} named {character_name}. "
+            f"A throwaway, unedited smartphone photograph of an everyday {race} {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
             f"PHYSICAL TRAITS: They have {hair} and {eyes}. This {gender} has {body_type}. "
             f"FACIAL GEOMETRY: {facial_structure}. SKIN TEXTURE: {skin_complexion}. "
@@ -239,8 +247,8 @@ class TheiaPromptGenerator:
             f"The composition is {framing}, {camera}. "
             f"{visual_aesthetic} {background_details} "
             f"They are showing a candid emotion: {expression}. ATTIRE: wearing {clothing}. "
-            f"This must look exactly like an authentic, throwaway private photo gallery snapshot with a realistic, neutral-to-cool color palette. "
-            f"Absolutely zero AI artifacts, no hyper-vibrant saturation, no warm golden-hour lighting, no heavy cinematic contrast, no studio airbrushing, and no beauty filters."
+            f"This must look exactly like an authentic, mid-quality private photo gallery snapshot {color_override}. "
+            f"Absolutely zero AI artifacts, NO Simlish screen gibberish, NO Morse-code spreadsheets, NO blurred background, NO bokeh, NO hyper-sharp macro skin pores, NO individual hair strands visible, NO out-of-context clothing, NO hyper-vibrant saturation, NO cinematic contrast, and NO beauty filters."
         )
         return prompt, genetic_signature
 
