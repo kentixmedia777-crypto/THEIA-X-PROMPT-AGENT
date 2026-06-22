@@ -295,25 +295,34 @@ except:
     API_STATUS = False
 
 EXTRACTION_PROMPT = """
-You are an expert script analyst and visual director.
-1. Read the following true crime/documentary script and extract all significant characters.
-2. If an image is provided alongside this text, analyze its exact lighting, camera angle, and environment style. Write a 1-sentence 'style_dna' description. If no image is provided, leave 'style_dna' empty.
+You are an elite Forensic Cinematographer and Script Director.
+1. Read the attached true-crime/documentary script and extract all significant characters.
+2. Look at the attached reference image. You will perform a 'Semantic Camera & Pose Theft'. Do NOT describe the specific identity of the subject in the photo. Instead, reverse-engineer the physical photography data and the exact bodily posture.
+
+Your 'style_dna' field MUST be a single, highly technical paragraph made of 5 strict sentences answering these exact criteria:
+[Sentence 1: Camera height, angle, and framing distance]
+[Sentence 2: The exact type, color temperature, and harshness of the primary light source]
+[Sentence 3: The post-processing light curve, exposure offset, and color saturation/tint]
+[Sentence 4: The depth of field, background focus sharpness, and sensor megapixel quality]
+[Sentence 5: The physical body pose, shoulder posture, arm placement, and head tilt of the primary subject]
+
+If no reference image is provided alongside the script, leave 'style_dna' as an empty string "".
 
 For each character, determine:
 1. socioeconomic_status ("wealthy", "standard", "struggling")
-2. appearance_tier ("below average", "average", "standard", "above average", "above standard")
+2. appearance_tier ("below average", "average", "standard", "above average")
 3. age (estimate if not explicitly stated)
 4. gender ("man", "woman", "boy", "girl", or "non-binary")
-5. race_ethnicity (e.g., "Caucasian", "African American", "East Asian", "Hispanic", "Middle Eastern", "South Asian", etc.)
+5. race_ethnicity (e.g., "Caucasian", "African American", "East Asian", "Hispanic", etc.)
 6. hair (e.g., "short blonde buzzcut", "long curly black hair", "bald")
-7. eyes (e.g., "piercing blue eyes", "warm brown eyes")
-8. clothing (e.g., "faded mechanic uniform", "expensive tailored suit", "casual oversized hoodie")
-9. details (a short 1-sentence summary of who they are in the story)
+7. eyes (e.g., "clear hazel eyes", "dark brown eyes")
+8. clothing (e.g., "faded mechanic uniform", "oversized casual hoodie")
+9. details (a short 1-sentence summary of their role in the story)
 
 You MUST return ONLY a raw JSON object. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
 {
-    "style_dna": "Soft golden hour sunlight, captured on a modern smartphone, casual outdoor park setting.",
+    "style_dna": "Captured from a low-angle waist-height perspective tilted slightly upward. Illuminated by harsh overhead fluorescent white office tubes casting a cool-green tint. Post-processed with crushed black shadows (-25), raised exposure (+35), and slightly muted color saturation. Rendered with an infinite depth of field keeping the background wall totally sharp on a standard 12MP mobile sensor. The subject is leaning forward slightly toward the lens with relaxed shoulders, their right arm slightly raised and their head tilted casually to one side.",
     "characters": [
         {
             "name": "John Doe", 
@@ -325,7 +334,7 @@ Format example:
             "clothing": "worn-out denim jacket",
             "details": "The lead detective on the case.", 
             "socioeconomic_status": "standard", 
-            "appearance_tier": "above average"
+            "appearance_tier": "average"
         }
     ]
 }
