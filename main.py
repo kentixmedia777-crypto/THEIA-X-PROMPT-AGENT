@@ -132,15 +132,19 @@ class TheiaPromptGenerator:
             "a fun, spontaneous, slightly goofy smile, clearly enjoying the moment"
         ]
 
+        # SURGERY ZONE 1: Expanded Real-World Environments
         self.environments = [
-            "outdoors on a beautiful sunny day, standing near a sparkling lake",
-            "sitting outside at a bustling, sunlit cafe patio with a drink on the table",
-            "on a scenic hiking trail surrounded by lush green trees and blue skies",
-            "relaxing in a cozy, warmly lit local bar or pub having a great time",
-            "on a bright, breezy beach with the ocean visible in the background",
-            "in a vibrant, colorful public park during a perfect summer afternoon",
-            "inside a bright, modern living room with sunlight pouring through large windows",
-            "standing casually on a bustling city street on a beautiful clear day"
+            "outdoors on a beautiful sunny day, standing near a public park fountain",
+            "sitting casually inside a brightly lit local grocery store aisle",
+            "riding as a passenger inside a public city bus during the day",
+            "standing on a normal, bustling downtown city street on a clear afternoon",
+            "outdoors in a dense, beautiful Pacific Northwest forest in the USA",
+            "outdoors on a vast, sunlit grassy savanna in Africa",
+            "on a bright, sunny public beach right by the ocean shoreline",
+            "sitting casually at the corner edge of a clear blue swimming pool",
+            "relaxing indoors, sitting comfortably on an unmade bed in a messy bedroom",
+            "sitting outside at a bustling, casual cafe patio with a drink on the table",
+            "inside a standard, everyday living room with natural daylight from a window"
         ]
 
         self.lighting_conditions = [
@@ -188,7 +192,6 @@ class TheiaPromptGenerator:
 
     def generate_prompt(self, character_name, socioeconomic_status="standard", appearance_tier="standard", style_dna=None, gender="person", race="diverse", hair="average hair", eyes="average eyes", clothing="casual clothes"):
         
-        # Enhanced seed lock using race and gender
         name_seed = int(hashlib.md5((character_name + appearance_tier + gender + race).encode()).hexdigest(), 16) % 100000
 
         tier_lower = appearance_tier.lower()
@@ -219,25 +222,36 @@ class TheiaPromptGenerator:
         framing = random.choice(self.framings)
         camera = random.choice(self.camera_hardware_middle)
         
-        # --- THE SMART CONFLICT RESOLVER ---
+        # SURGERY ZONE 2: Smart Contextual Outfitter & Conflict Resolver
         if style_dna:
             visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
             background_details = "The background features highly authentic everyday office or domestic items matching this specific setting."
-            
-            # Prevent the AI from wearing Safari/Tactical gear inside standard indoor rooms
             if any(word in style_dna.lower() for word in ["office", "indoor", "room", "desk", "inside", "house", "apartment"]):
                 clothing = "casual, normal everyday indoor attire"
-                
             color_override = "adhering to the natural lighting color of the setting"
         else:
-            environment = random.choice(self.environments)
+            available_envs = [env for env in self.environments if not hasattr(self, 'last_env') or env != self.last_env]
+            environment = random.choice(available_envs)
+            self.last_env = environment
+            
             lighting = random.choice(self.lighting_conditions)
             timeframe = random.choice(self.timeframes)
             visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
             background_details = "The background features highly authentic, everyday lived-in details."
             color_override = "with a realistic, neutral-to-cool color palette"
 
-        # THE ULTIMATE PROMPT ASSEMBLY (Version 9.5 - Locked to Mid-Tier Mobile Sensor)
+            env_lower = environment.lower()
+            if "beach" in env_lower:
+                clothing = "a stylish two-piece bikini swimwear" if gender in ["woman", "girl"] else "boardshorts and a casual short-sleeve rash guard"
+            elif "pool" in env_lower:
+                clothing = "casual poolside swimwear"
+            elif "bed" in env_lower or "bedroom" in env_lower:
+                clothing = "comfortable, ultra-casual sleepwear or comfortable loungewear"
+            elif "forest" in env_lower or "hiking" in env_lower:
+                clothing = "practical outdoor hiking clothes and a light jacket"
+            elif "bus" in env_lower or "grocery" in env_lower or "street" in env_lower:
+                clothing = "completely normal, everyday casual streetwear"
+
         prompt = (
             f"A throwaway, unedited smartphone photograph of an everyday {race} {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
@@ -246,9 +260,9 @@ class TheiaPromptGenerator:
             f"They are {vibe}. "
             f"The composition is {framing}, {camera}. "
             f"{visual_aesthetic} {background_details} "
-            f"They are showing a candid emotion: {expression}. ATTIRE: wearing {clothing}. "
+            f"They are showing a candid emotion: {expression}. ATTIRE: strictly wearing {clothing}. "
             f"This must look exactly like an authentic, mid-quality private photo gallery snapshot {color_override}. "
-            f"Absolutely zero AI artifacts, NO Simlish screen gibberish, NO Morse-code spreadsheets, NO blurred background, NO bokeh, NO hyper-sharp macro skin pores, NO individual hair strands visible, NO out-of-context clothing, NO hyper-vibrant saturation, NO cinematic contrast, and NO beauty filters."
+            f"Absolutely zero AI artifacts, NO Simlish screen gibberish, NO Morse-code spreadsheets, NO blurred background, NO bokeh, NO hyper-sharp macro skin pores, NO individual hair strands visible, NO bizarre out-of-context locations, NO hyper-vibrant saturation, NO cinematic contrast, and NO beauty filters."
         )
         return prompt, genetic_signature
 
@@ -294,19 +308,10 @@ try:
 except:
     API_STATUS = False
 
+# SURGERY ZONE 3: Split Prompts (Text Parser vs. On-The-Fly Vision)
 EXTRACTION_PROMPT = """
-You are an elite Forensic Cinematographer and Script Director.
-1. Read the attached true-crime/documentary script and extract all significant characters.
-2. Look at the attached reference image. You will perform a 'Semantic Camera & Pose Theft'. Do NOT describe the specific identity of the subject in the photo. Instead, reverse-engineer the physical photography data and the exact bodily posture.
-
-Your 'style_dna' field MUST be a single, highly technical paragraph made of 5 strict sentences answering these exact criteria:
-[Sentence 1: Camera height, angle, and framing distance]
-[Sentence 2: The exact type, color temperature, and harshness of the primary light source]
-[Sentence 3: The post-processing light curve, exposure offset, and color saturation/tint]
-[Sentence 4: The depth of field, background focus sharpness, and sensor megapixel quality]
-[Sentence 5: The physical body pose, shoulder posture, arm placement, and head tilt of the primary subject]
-
-If no reference image is provided alongside the script, leave 'style_dna' as an empty string "".
+You are an expert script analyst and casting director.
+Read the following true crime/documentary script and extract all significant characters.
 
 For each character, determine:
 1. socioeconomic_status ("wealthy", "standard", "struggling")
@@ -315,14 +320,13 @@ For each character, determine:
 4. gender ("man", "woman", "boy", "girl", or "non-binary")
 5. race_ethnicity (e.g., "Caucasian", "African American", "East Asian", "Hispanic", etc.)
 6. hair (e.g., "short blonde buzzcut", "long curly black hair", "bald")
-7. eyes (e.g., "clear hazel eyes", "dark brown eyes")
-8. clothing (e.g., "faded mechanic uniform", "oversized casual hoodie")
-9. details (a short 1-sentence summary of their role in the story)
+7. eyes (e.g., "piercing blue eyes", "warm brown eyes")
+8. clothing (e.g., "faded mechanic uniform", "expensive tailored suit", "casual oversized hoodie")
+9. details (a short 1-sentence summary of who they are in the story)
 
 You MUST return ONLY a raw JSON object. Do not wrap it in markdown block quotes. Just the raw text.
 Format example:
 {
-    "style_dna": "Captured from a low-angle waist-height perspective tilted slightly upward. Illuminated by harsh overhead fluorescent white office tubes casting a cool-green tint. Post-processed with crushed black shadows (-25), raised exposure (+35), and slightly muted color saturation. Rendered with an infinite depth of field keeping the background wall totally sharp on a standard 12MP mobile sensor. The subject is leaning forward slightly toward the lens with relaxed shoulders, their right arm slightly raised and their head tilted casually to one side.",
     "characters": [
         {
             "name": "John Doe", 
@@ -334,11 +338,22 @@ Format example:
             "clothing": "worn-out denim jacket",
             "details": "The lead detective on the case.", 
             "socioeconomic_status": "standard", 
-            "appearance_tier": "average"
+            "appearance_tier": "above average"
         }
     ]
 }
 SCRIPT TO ANALYZE:
+"""
+
+VISION_DNA_PROMPT = """
+Analyze the attached reference image. You will perform a 'Semantic Camera & Pose Theft'. Do NOT describe the specific identity or features of the subject in the photo. Instead, reverse-engineer the physical photography data and the exact bodily posture.
+
+Return a single, highly technical paragraph made of exactly 5 strict sentences matching these criteria:
+Sentence 1: Camera height, angle, and framing distance.
+Sentence 2: The exact type, color temperature, and harshness of the primary light source.
+Sentence 3: The post-processing light curve, exposure offset, and color saturation/tint.
+Sentence 4: The depth of field, background focus sharpness, and sensor megapixel quality.
+Sentence 5: The physical body pose, shoulder posture, arm placement, and head tilt of the primary subject.
 """
 
 st.markdown('<div class="custom-title">THEIA</div>', unsafe_allow_html=True)
@@ -351,47 +366,32 @@ if password_input == ACCESS_PASSWORD:
     st.sidebar.markdown("---")
     
     if API_STATUS:
-        st.sidebar.info("🧠 Brain: Gemini Pro 3.1")
+        st.sidebar.info("🧠 Brain: Gemini Flash 3.5")
         st.sidebar.info("🎨 Engine: Python")
         st.sidebar.info("☁️ Memory: ImgBB Cloud Sync")
         st.sidebar.info("🏢 Auth: Lucalles Productions")
 
-    # ONLY 2 TABS REMAIN
     tab1, tab2 = st.tabs(["📝 Prompt Studio", "📁 Style Bank"])
 
     with tab1:
         st.markdown("#### 🎬 Script Ingestion")
         user_script = st.text_area("Input Stream", height=150, placeholder="Paste your documentary/narrative script here...", label_visibility="collapsed")
         
+        # SURGERY ZONE 4: Decoupled Loop Processing Core
         if st.button("EXTRACT & BUILD PROMPTS"):
             if user_script:
-                with st.spinner("Analyzing script and pulling Vision DNA from Style Bank..."):
+                with st.spinner("Analyzing script text and mapping characters..."):
                     try:
-                        style_image_bytes = None
                         style_urls = get_style_urls_from_sheet()
-                        
-                        if style_urls:
-                            random_img_url = random.choice(style_urls)
-                            style_image_bytes = requests.get(random_img_url).content
-
                         model = genai.GenerativeModel("gemini-3.5-flash")
                         
-                        contents = [EXTRACTION_PROMPT + user_script]
-                        if style_image_bytes:
-                            contents.append({"mime_type": "image/jpeg", "data": style_image_bytes})
-                            
-                        response = model.generate_content(contents)
+                        response = model.generate_content([EXTRACTION_PROMPT + user_script])
                         raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
                         parsed_data = json.loads(raw_json)
-                        
-                        style_dna = parsed_data.get("style_dna", "")
                         character_data = parsed_data.get("characters", [])
                         
                         theia_engine = TheiaPromptGenerator()
-                        
                         st.success(f"✅ Extraction Complete: Found {len(character_data)} Subjects")
-                        if style_dna:
-                            st.info(f"📷 Vision DNA Applied: *{style_dna}*")
                         st.markdown("---")
                         
                         for char in character_data:
@@ -406,14 +406,31 @@ if password_input == ACCESS_PASSWORD:
                             clothing = char.get("clothing", "casual everyday clothes")
                             details = char.get("details", "No details available.")
                             
+                            char_style_dna = ""
+                            if style_urls:
+                                try:
+                                    random_img_url = random.choice(style_urls)
+                                    char_image_bytes = requests.get(random_img_url).content
+                                    
+                                    vision_payload = [
+                                        VISION_DNA_PROMPT,
+                                        {"mime_type": "image/jpeg", "data": char_image_bytes}
+                                    ]
+                                    vision_response = model.generate_content(vision_payload)
+                                    char_style_dna = vision_response.text.strip()
+                                except:
+                                    char_style_dna = ""
+
                             prompt, genetics = theia_engine.generate_prompt(
-                                name, status, appearance, style_dna, gender, race, hair, eyes, clothing
+                                name, status, appearance, char_style_dna, gender, race, hair, eyes, clothing
                             )
                             
                             st.markdown(f"### 👤 {name}")
                             st.caption(f"**Age:** {age} | **Gender:** {gender.title()} | **Race:** {race.title()}")
                             st.caption(f"**Hair:** {hair.title()} | **Eyes:** {eyes.title()}")
                             st.caption(f"**Attire:** {clothing.title()} | **Role:** {details}")
+                            if char_style_dna:
+                                st.info(f"📷 **Isolated Vision DNA Clone for {name}:** *{char_style_dna}*")
                             st.caption(f"**Casting Tier:** `{appearance.upper()}` | **Locked Hash:** `{genetics}`")
                             
                             st.code(prompt, language="markdown")
