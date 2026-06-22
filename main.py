@@ -132,7 +132,6 @@ class TheiaPromptGenerator:
             "a fun, spontaneous, slightly goofy smile, clearly enjoying the moment"
         ]
 
-        # SURGERY ZONE 1: Expanded Real-World Environments
         self.environments = [
             "outdoors on a beautiful sunny day, standing near a public park fountain",
             "sitting casually inside a brightly lit local grocery store aisle",
@@ -165,11 +164,12 @@ class TheiaPromptGenerator:
             "a random camera-roll snapshot where the subject isn't perfectly centered"
         ]
 
+        # PURGED IPHONES: Locked to 2018 Budget Android & Sub-1 Megapixel sensors
         self.camera_hardware_middle = [
-            "captured on a standard 12-megapixel smartphone sensor, post-processed with lowered contrast (-35) and boosted exposure (+35), deep depth of field with the background completely in focus",
-            "authentic mobile snapshot, fixed standard phone lens, slightly desaturated tonal curve, crushed dark shadows (-25), absolute zero shallow depth of field",
-            "everyday middle-tier smartphone camera, 12MP limit, flat mobile sensor rendering, muted saturation, foreground and background equally sharp",
-            "amateur phone picture, raised base exposure (+35), normal focal length, deep infinite focus, slight digital grain, zero cinematic background blur"
+            "captured on a budget 2018 Android smartphone, sub-1 megapixel front camera quality, slightly soft digital capture, zero artificial sharpening",
+            "authentic 2018 mid-specs mobile snapshot, cheap digital sensor capture, completely un-calibrated flat colors, blown-out highlights, deep infinite focus",
+            "middle-low quality Android phone camera, 0.5MP digital capture look, visible mobile sensor grain, unretouched, zero cinematic background blur",
+            "throwaway budget smartphone picture, standard fixed mobile lens, slightly muddy midtones, completely flat digital capture without modern computational processing"
         ]
         self.timeframes = [
             "captured exactly during a perfect, memorable day",
@@ -222,7 +222,6 @@ class TheiaPromptGenerator:
         framing = random.choice(self.framings)
         camera = random.choice(self.camera_hardware_middle)
         
-        # SURGERY ZONE 2: Smart Contextual Outfitter & Conflict Resolver
         if style_dna:
             visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
             background_details = "The background features highly authentic everyday office or domestic items matching this specific setting."
@@ -238,7 +237,7 @@ class TheiaPromptGenerator:
             timeframe = random.choice(self.timeframes)
             visual_aesthetic = f"SETTING: {environment}. LIGHTING: {lighting}. {timeframe}."
             background_details = "The background features highly authentic, everyday lived-in details."
-            color_override = "with a realistic, neutral-to-cool color palette"
+            color_override = "with a realistic, flat sRGB mobile color palette"
 
             env_lower = environment.lower()
             if "beach" in env_lower:
@@ -252,8 +251,9 @@ class TheiaPromptGenerator:
             elif "bus" in env_lower or "grocery" in env_lower or "street" in env_lower:
                 clothing = "completely normal, everyday casual streetwear"
 
+        # ULTIMATE PROMPT (v10.5): Banned iPhones, cinematic filters, green tints, and high resolution
         prompt = (
-            f"A throwaway, unedited smartphone photograph of an everyday {race} {gender} named {character_name}. "
+            f"A throwaway, low-quality smartphone photograph of an everyday {race} {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
             f"PHYSICAL TRAITS: They have {hair} and {eyes}. This {gender} has {body_type}. "
             f"FACIAL GEOMETRY: {facial_structure}. SKIN TEXTURE: {skin_complexion}. "
@@ -261,8 +261,8 @@ class TheiaPromptGenerator:
             f"The composition is {framing}, {camera}. "
             f"{visual_aesthetic} {background_details} "
             f"They are showing a candid emotion: {expression}. ATTIRE: strictly wearing {clothing}. "
-            f"This must look exactly like an authentic, mid-quality private photo gallery snapshot {color_override}. "
-            f"Absolutely zero AI artifacts, NO Simlish screen gibberish, NO Morse-code spreadsheets, NO blurred background, NO bokeh, NO hyper-sharp macro skin pores, NO individual hair strands visible, NO bizarre out-of-context locations, NO hyper-vibrant saturation, NO cinematic contrast, and NO beauty filters."
+            f"This must look exactly like an authentic, mid-low quality 2018 Android photo gallery snapshot {color_override}. "
+            f"Absolutely zero AI artifacts, NO iPhone camera quality, NO cinematic filters, NO green color tint, NO movie color grading, NO bokeh, NO blurred background, NO hyper-sharp skin pores, NO individual hair strands visible, NO hyper-vibrant saturation, NO modern computational rendering, and NO beauty filters."
         )
         return prompt, genetic_signature
 
@@ -308,7 +308,6 @@ try:
 except:
     API_STATUS = False
 
-# SURGERY ZONE 3: Split Prompts (Text Parser vs. On-The-Fly Vision)
 EXTRACTION_PROMPT = """
 You are an expert script analyst and casting director.
 Read the following true crime/documentary script and extract all significant characters.
@@ -377,7 +376,7 @@ if password_input == ACCESS_PASSWORD:
         st.markdown("#### 🎬 Script Ingestion")
         user_script = st.text_area("Input Stream", height=150, placeholder="Paste your documentary/narrative script here...", label_visibility="collapsed")
         
-        # SURGERY ZONE 4: Decoupled Loop Processing Core
+        # FULLY DECOUPLED LOOP ENGINE
         if st.button("EXTRACT & BUILD PROMPTS"):
             if user_script:
                 with st.spinner("Analyzing script text and mapping characters..."):
