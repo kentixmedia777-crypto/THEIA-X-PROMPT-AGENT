@@ -88,10 +88,10 @@ class TheiaPromptGenerator:
             "a standard, relatable face shape with a comfortable, familiar structure"
         ]
         self.skin_average = [
-            "natural human skin with realistic faint pores, completely unretouched and authentic",
-            "normal everyday skin texture, completely unedited, healthy but unpolished",
-            "authentic raw complexion, highly realistic, slight natural variations in tone",
-            "matte but normal skin, unpolished, catching the light naturally, highly human"
+            "completely normal skin, casual phone lighting, no hyper-details",
+            "average everyday complexion, standard resolution, unedited",
+            "normal skin, flat lighting, looks like a basic digital photo",
+            "standard human skin, no beauty filters, plain lighting"
         ]
 
         self.geo_below_average = [
@@ -100,9 +100,9 @@ class TheiaPromptGenerator:
             "coarsened and robust facial features, deeply set, asymmetrical eyes"
         ]
         self.skin_below_average = [
-            "completely unedited natural skin, slight fine lines, highly authentic raw texture",
-            "realistic unpolished complexion, unretouched, normal everyday skin without filters",
-            "natural everyday skin, highly authentic and human, completely unedited"
+            "unedited normal skin, maybe a slight blemish, low-res phone quality",
+            "average unpolished complexion, basic lighting, completely normal",
+            "everyday skin, no studio lighting, authentic amateur photo look"
         ]
 
         self.body_types = [
@@ -151,17 +151,22 @@ class TheiaPromptGenerator:
         ]
 
         self.framings = [
-            "framed as a close-up Selfie (hands and arms are completely out of frame), looking directly into the lens",
-            "a Candid Medium Shot taken by a companion across a table, highly natural posture",
-            "a Cowboy Shot (thigh-up), standing naturally in their environment, arms relaxed",
-            "an Environmental Snapshot, capturing them interacting naturally with their surroundings, documentary style"
+            "a casual group photo taken with friends, subject is smiling alongside them",
+            "a candid snapshot taken by a family member from a slightly low angle",
+            "a quick, slightly off-center snapshot taken across the room",
+            "a wide-angle shot showing the subject interacting with their environment, looking away from the camera",
+            "framed as an everyday group selfie with a friend's arm holding the camera",
+            "a Candid Medium Shot taken by a companion across a table, casual posture",
+            "a normal, everyday photo taken from a high angle, looking down slightly",
+            "a random camera-roll snapshot where the subject isn't perfectly centered"
         ]
 
         self.camera_hardware_middle = [
-            "shot on a standard smartphone, low dynamic range, muted natural colors",
-            "authentic digital phone camera snapshot, raw computational photography look, unfiltered",
-            "standard everyday smartphone lens, slight ISO noise, true-to-life throwaway snapshot",
-            "captured on a generic smartphone, flat natural lighting, completely unretouched"
+            "shot on an older iPhone 11, basic amateur photography, flat standard lighting",
+            "uploaded directly to Facebook in 2018, standard smartphone lens, compression artifacts",
+            "a quick, disposable smartphone picture, slightly blurry, no professional lighting",
+            "captured on a basic Android phone, muted colors, completely amateur snapshot",
+            "a throwaway camera-roll photo, slightly bad lighting, completely un-cinematic"
         ]
 
         self.timeframes = [
