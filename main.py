@@ -223,11 +223,18 @@ class TheiaPromptGenerator:
         camera = random.choice(self.camera_hardware_middle)
         
         if style_dna:
-            visual_aesthetic = f"STYLE & LIGHTING MATCH: {style_dna}"
+            # SANITIZATION FILTER: Clean up the Vision DNA to prevent AI golden hour explosions
+            banned_words = ["cinematic", "golden hour", "vibrant", "saturation", "professional", "studio", "beautiful", "perfect"]
+            cleaned_dna = style_dna
+            for word in banned_words:
+                cleaned_dna = cleaned_dna.replace(word, "flat")
+                cleaned_dna = cleaned_dna.replace(word.title(), "flat")
+
+            visual_aesthetic = f"STYLE & POSE MATCH: {cleaned_dna}"
             background_details = "The background features highly authentic everyday office or domestic items matching this specific setting."
-            if any(word in style_dna.lower() for word in ["office", "indoor", "room", "desk", "inside", "house", "apartment"]):
+            if any(word in cleaned_dna.lower() for word in ["office", "indoor", "room", "desk", "inside", "house", "apartment"]):
                 clothing = "casual, normal everyday indoor attire"
-            color_override = "adhering to the natural lighting color of the setting"
+            color_override = "adhering to completely flat, un-enhanced mobile camera color tracking with zero warm color cast"
         else:
             available_envs = [env for env in self.environments if not hasattr(self, 'last_env') or env != self.last_env]
             environment = random.choice(available_envs)
