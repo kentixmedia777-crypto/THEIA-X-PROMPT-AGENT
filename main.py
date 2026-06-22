@@ -233,16 +233,16 @@ class TheiaPromptGenerator:
 
         # THE ULTIMATE PROMPT ASSEMBLY
         prompt = (
-            f"A raw, unedited smartphone photograph of a totally unique, real {race} {gender} named {character_name}. "
+            f"An amateur, unedited smartphone photograph of a real {race} {gender} named {character_name}. "
             f"This is a specific identity, seed signature: [Seed:{name_seed}]. "
             f"PHYSICAL TRAITS: They have {hair} and {eyes}. This {gender} has {body_type}. "
             f"FACIAL GEOMETRY: {facial_structure}. SKIN TEXTURE: {skin_complexion}. "
             f"They are {vibe}. "
-            f"The image is {framing}, captured by {camera}. "
+            f"The composition is {framing}, {camera}. "
             f"{visual_aesthetic} {background_details} "
-            f"They are showing a deeply human emotion: {expression}. ATTIRE: wearing {clothing}. "
-            f"This must look exactly like a leaked, private photo gallery snapshot. "
-            f"Absolutely zero AI artifacts, no mutant hands, no plastic 3D skin, no professional photography, no studio lighting, and no beauty filters."
+            f"They are showing a candid emotion: {expression}. ATTIRE: wearing {clothing}. "
+            f"This must look exactly like an authentic, throwaway private photo gallery snapshot. "
+            f"Absolutely zero AI artifacts, no hyper-detailed HD skin, no professional DSLR photography, no studio lighting, no perfect centering, and no beauty filters."
         )
         return prompt, genetic_signature
 
@@ -359,7 +359,7 @@ if password_input == ACCESS_PASSWORD:
                             random_img_url = random.choice(style_urls)
                             style_image_bytes = requests.get(random_img_url).content
 
-                        model = genai.GenerativeModel("gemini-2.5-pro")
+                        model = genai.GenerativeModel("gemini-1.5-pro")
                         
                         contents = [EXTRACTION_PROMPT + user_script]
                         if style_image_bytes:
