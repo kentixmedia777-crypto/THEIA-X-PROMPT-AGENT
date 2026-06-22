@@ -359,7 +359,7 @@ if password_input == ACCESS_PASSWORD:
                             random_img_url = random.choice(style_urls)
                             style_image_bytes = requests.get(random_img_url).content
 
-                        model = genai.GenerativeModel("gemini-1.5-pro")
+                        model = genai.GenerativeModel("gemini-3.5-flash")
                         
                         contents = [EXTRACTION_PROMPT + user_script]
                         if style_image_bytes:
