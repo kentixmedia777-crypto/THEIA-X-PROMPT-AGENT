@@ -274,7 +274,7 @@ class TheiaPromptGenerator:
         return prompt, genetic_signature
 
 # --- UI SETUP ---
-st.set_page_config(page_title="THEIA PRO", page_icon="👁️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="THEIA PRO", page_icon="𝔗", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
@@ -389,7 +389,7 @@ if password_input == ACCESS_PASSWORD:
                 with st.spinner("Analyzing script text and mapping characters..."):
                     try:
                         style_urls = get_style_urls_from_sheet()
-                        model = genai.GenerativeModel("gemini-3.5-flash")
+                        model = genai.GenerativeModel("gemini-2.5-flash")
                         
                         response = model.generate_content([EXTRACTION_PROMPT + user_script])
                         raw_json = response.text.strip().replace("```json", "").replace("```", "").strip()
